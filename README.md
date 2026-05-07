@@ -1,10 +1,11 @@
 # Vflux
+English README: [README.en.md](README.en.md)
 
 Vflux 是一个面向 FPGA 学习与开发的小型图形化工具，配合 [OSS CAD Suite](https://github.com/YosysHQ/oss-cad-suite-build) 使用。它不会重新实现 Yosys、nextpnr、icepack、ecppack、openFPGALoader 等底层工具，而是把原本分散在命令行里的 FPGA 开发流程整理成连续、清晰、可视化的工作台。
 
 当前版本定位为 **0.9 Windows 试用版**：重点覆盖 iCE40/iCESugar 学习流程，并提供 ECP5、Gowin 的工程配置和工具链入口。
 
-English README: [README.en.md](README.en.md)
+
 
 ## 使用前准备
 
