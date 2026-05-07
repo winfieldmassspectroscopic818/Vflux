@@ -1,0 +1,7 @@
+title: "iCESugar LED Blinky"
+project_name: "icesugar_blinky"
+family: "ice40"
+board: "iCESugar"
+top_module: "top"
+description: "面向 iCESugar 的最小点灯例程，可用于一键测试检查、综合、布局布线和生成比特流。"
+flow: ["检查", "综合", "布局布线", "比特流"]

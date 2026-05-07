@@ -1,0 +1,38 @@
+# ULX3S 45F Board Hardware Package
+
+board:
+  name: "ULX3S 45F"
+  vendor: "Radiona"
+  description: "ULX3S ECP5 45F 模板。不同批次外设较多，建议使用官方 LPF 或项目自带约束。"
+  url: "https://radiona.org/ulx3s/"
+
+fpga:
+  family: "ecp5"
+  device: "45k"
+  package: "CABGA381"
+  speed: "6"
+
+resources:
+  clock: []
+  leds: []
+  buttons: []
+
+constraints:
+  lpf_file: ""
+
+toolchain:
+  synth:
+    tool: "yosys"
+    arch: "ecp5"
+    synth_options: ["-top", "${top_module}"]
+    extra_options: []
+  place_and_route:
+    tool: "nextpnr-ecp5"
+    arch_options: ["--${device}", "--package", "${package}", "--speed", "${speed}"]
+    extra_options: []
+  pack:
+    tool: "ecppack"
+  program:
+    tool: "openFPGALoader"
+    interface: "ftdi"
+    extra_options: []

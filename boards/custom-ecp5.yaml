@@ -1,0 +1,41 @@
+# Custom ECP5 Board Template
+
+board:
+  name: "Custom ECP5"
+  vendor: "Custom"
+  description: "通用 Lattice ECP5 模板。默认按 25K/CABGA381/speed 6，可在工程文件中调整器件、封装和 LPF。"
+  url: ""
+
+fpga:
+  family: "ecp5"
+  device: "25k"
+  package: "CABGA381"
+  speed: "6"
+
+resources:
+  clock: []
+  leds: []
+  buttons: []
+
+constraints:
+  lpf_file: ""
+
+toolchain:
+  synth:
+    tool: "yosys"
+    arch: "ecp5"
+    synth_options: ["-top", "${top_module}"]
+    extra_options: []
+
+  place_and_route:
+    tool: "nextpnr-ecp5"
+    arch_options: ["--${device}", "--package", "${package}", "--speed", "${speed}"]
+    extra_options: []
+
+  pack:
+    tool: "ecppack"
+
+  program:
+    tool: "openFPGALoader"
+    interface: "usb"
+    extra_options: []

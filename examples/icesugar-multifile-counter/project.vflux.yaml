@@ -1,0 +1,48 @@
+project:
+  name: icesugar_multifile_counter
+  directory: ""
+  top_module: top
+  language: verilog
+  sources:
+    - src/top.v
+    - src/prescaler.v
+    - src/led_chaser.v
+  constraints:
+    - constraints/top.pcf
+  program_target_dir: ""
+board:
+  filename: icesugar.yaml
+  name: iCESugar
+  fpga_family: ice40
+  fpga_device: up5k
+  fpga_package: sg48
+  fpga_speed: ""
+  program_tool: icesprog
+  program_interface: ftdi
+toolchain:
+  oss_cad_path: ""
+  extra_args: ""
+flow:
+  synthesis:
+    proc: true
+    opt: true
+    fsm: true
+    memory: true
+    splitnets: false
+    abc: true
+    flatten: false
+    abc9: false
+    multishare: false
+  pnr:
+    timing: true
+    report: true
+    svg: true
+    seed: 2
+    frequency: 12
+  pack:
+    metadata: true
+    verify_unpack: true
+    html: true
+  program:
+    method: mass-storage
+    skip_detect: true

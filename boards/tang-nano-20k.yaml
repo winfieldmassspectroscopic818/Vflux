@@ -1,0 +1,53 @@
+# Tang Nano 20K Board Hardware Package
+
+board:
+  name: "Tang Nano 20K"
+  vendor: "Sipeed"
+  description: "基于 Gowin GW2AR-18 的开源 FPGA 开发板"
+  url: "https://wiki.sipeed.com/hardware/zh/tang/Tang-Nano-20K/Nano-20K.html"
+
+fpga:
+  family: "gowin"
+  device: "GW2AR-18"
+  package: "QFN88"
+  speed: ""
+
+resources:
+  clock:
+    - name: "clk"
+      pin: "52"
+      frequency: "27MHz"
+  leds:
+    - name: "led"
+      pin: "10"
+  buttons:
+    - name: "btn1"
+      pin: "4"
+    - name: "btn2"
+      pin: "3"
+  uart:
+    tx: "41"
+    rx: "40"
+
+constraints:
+  cst_file: ""
+
+toolchain:
+  synth:
+    tool: "yosys"
+    arch: "gowin"
+    synth_options: ["-top", "${top_module}"]
+    extra_options: []
+
+  place_and_route:
+    tool: "nextpnr-himbaechel"
+    arch_options: ["--device", "${device}", "--package", "${package}"]
+    extra_options: []
+
+  pack:
+    tool: "gowin_pack"
+
+  program:
+    tool: "openFPGALoader"
+    interface: "ftdi"
+    extra_options: []

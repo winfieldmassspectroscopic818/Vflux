@@ -1,0 +1,44 @@
+# Tang Nano 4K Board Hardware Package
+
+board:
+  name: "Tang Nano 4K"
+  vendor: "Sipeed"
+  description: "基于 Gowin GW1NSR-4C 的小型开发板。请按官方文档或示例工程维护 CST 约束。"
+  url: "https://wiki.sipeed.com/hardware/zh/tang/Tang-Nano-4K/Nano-4K.html"
+
+fpga:
+  family: "gowin"
+  device: "GW1NSR-4C"
+  package: "QFN48"
+  speed: ""
+
+resources:
+  clock:
+    - name: "clk"
+      pin: ""
+      frequency: "27MHz"
+  leds: []
+  buttons: []
+
+constraints:
+  cst_file: ""
+
+toolchain:
+  synth:
+    tool: "yosys"
+    arch: "gowin"
+    synth_options: ["-top", "${top_module}"]
+    extra_options: []
+
+  place_and_route:
+    tool: "nextpnr-himbaechel"
+    arch_options: ["--device", "${device}", "--package", "${package}"]
+    extra_options: []
+
+  pack:
+    tool: "gowin_pack"
+
+  program:
+    tool: "openFPGALoader"
+    interface: "ftdi"
+    extra_options: []

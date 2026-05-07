@@ -1,0 +1,42 @@
+project:
+  name: icesugar_pro_blinky
+  directory: ""
+  top_module: top
+  language: verilog
+  sources:
+    - src/top.v
+  constraints:
+    - constraints/top.lpf
+  program_target_dir: ""
+board:
+  filename: icesugar-pro.yaml
+  name: iCESugar-pro
+  fpga_family: ecp5
+  fpga_device: 25k
+  fpga_package: CABGA381
+  fpga_speed: "6"
+  program_tool: ecpprog
+  program_interface: ftdi
+toolchain:
+  oss_cad_path: ""
+  extra_args: ""
+flow:
+  synthesis:
+    proc: true
+    opt: true
+    abc: true
+    abc9: false
+    dsp: false
+  pnr:
+    timing: true
+    report: true
+    svg: true
+    lpf: constraints/top.lpf
+    speed_grade: "6"
+    seed: 1
+    frequency: 25
+  pack:
+    metadata: true
+    compress: false
+  program:
+    method: ecpprog

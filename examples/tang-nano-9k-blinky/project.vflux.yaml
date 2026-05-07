@@ -1,0 +1,38 @@
+project:
+  name: tang_nano_9k_blinky
+  directory: ""
+  top_module: top
+  language: verilog
+  sources:
+    - src/top.v
+  constraints:
+    - constraints/top.cst
+  program_target_dir: ""
+board:
+  filename: tang-nano-9k.yaml
+  name: Tang Nano 9K
+  fpga_family: gowin
+  fpga_device: GW1NR-9
+  fpga_package: QFN88
+  fpga_speed: ""
+  program_tool: openFPGALoader
+  program_interface: ftdi
+toolchain:
+  oss_cad_path: ""
+  extra_args: ""
+flow:
+  synthesis:
+    proc: true
+    opt: true
+    abc: true
+  pnr:
+    timing: true
+    report: true
+    cst: constraints/top.cst
+    seed: 1
+    frequency: 27
+  pack:
+    metadata: true
+  program:
+    method: openfpgaloader
+    board_override: tangnano9k

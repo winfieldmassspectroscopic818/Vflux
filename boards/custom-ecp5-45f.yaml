@@ -1,0 +1,38 @@
+# Custom ECP5 45F Board Template
+
+board:
+  name: "Custom ECP5 45F"
+  vendor: "Custom"
+  description: "通用 ECP5 45K 模板。适合先进入 ECP5 流程，再手动维护 LPF 约束。"
+  url: ""
+
+fpga:
+  family: "ecp5"
+  device: "45k"
+  package: "CABGA381"
+  speed: "6"
+
+resources:
+  clock: []
+  leds: []
+  buttons: []
+
+constraints:
+  lpf_file: ""
+
+toolchain:
+  synth:
+    tool: "yosys"
+    arch: "ecp5"
+    synth_options: ["-top", "${top_module}"]
+    extra_options: []
+  place_and_route:
+    tool: "nextpnr-ecp5"
+    arch_options: ["--${device}", "--package", "${package}", "--speed", "${speed}"]
+    extra_options: []
+  pack:
+    tool: "ecppack"
+  program:
+    tool: "openFPGALoader"
+    interface: "usb"
+    extra_options: []

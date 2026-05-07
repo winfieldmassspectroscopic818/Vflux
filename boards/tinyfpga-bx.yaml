@@ -1,0 +1,38 @@
+# TinyFPGA BX Board Hardware Package
+
+board:
+  name: "TinyFPGA BX"
+  vendor: "TinyFPGA"
+  description: "基于 Lattice iCE40LP8K/CM81 的小型开发板模板。请按项目约束文件维护具体 IO。"
+  url: "https://tinyfpga.com/bx/guide.html"
+
+fpga:
+  family: "ice40"
+  device: "lp8k"
+  package: "cm81"
+  speed: ""
+
+resources:
+  clock: []
+  leds: []
+  buttons: []
+
+constraints:
+  pcf_file: ""
+
+toolchain:
+  synth:
+    tool: "yosys"
+    arch: "ice40"
+    synth_options: ["-top", "${top_module}"]
+    extra_options: []
+  place_and_route:
+    tool: "nextpnr-ice40"
+    arch_options: ["--${device}", "--package", "${package}"]
+    extra_options: []
+  pack:
+    tool: "icepack"
+  program:
+    tool: "openFPGALoader"
+    interface: "usb"
+    extra_options: []

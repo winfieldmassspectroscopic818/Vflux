@@ -1,0 +1,51 @@
+# iCESugar-pro Board Hardware Package
+
+board:
+  name: "iCESugar-pro"
+  vendor: "MuseLab"
+  description: "基于 Lattice ECP5 LFE5U-25F 的开源 FPGA 开发板"
+  url: "https://github.com/wuxx/icesugar-pro"
+
+fpga:
+  family: "ecp5"
+  device: "25k"
+  package: "CABGA381"
+  speed: "6"
+
+resources:
+  clock:
+    - name: "clk"
+      pin: "P3"
+      frequency: "25MHz"
+  leds:
+    - name: "led"
+      pin: "M3"
+  buttons:
+    - name: "btn"
+      pin: "D2"
+  uart:
+    tx: "F2"
+    rx: "E1"
+
+constraints:
+  pcf_file: ""
+
+toolchain:
+  synth:
+    tool: "yosys"
+    arch: "ecp5"
+    synth_options: ["-top", "${top_module}"]
+    extra_options: []
+
+  place_and_route:
+    tool: "nextpnr-ecp5"
+    arch_options: ["--${device}", "--package", "${package}", "--speed", "${speed}"]
+    extra_options: []
+
+  pack:
+    tool: "ecppack"
+
+  program:
+    tool: "ecpprog"
+    interface: "ftdi"
+    extra_options: []

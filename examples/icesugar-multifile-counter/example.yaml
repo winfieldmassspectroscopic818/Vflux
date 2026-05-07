@@ -1,0 +1,7 @@
+title: "iCESugar Multi-file Counter"
+project_name: "icesugar_multifile_counter"
+family: "ice40"
+board: "iCESugar"
+top_module: "top"
+description: "多文件 iCE40 例程：包含宏定义头文件、分频模块、LED 跑马灯模块，用于验证 include 和多个 Verilog 文件能否顺利构建。"
+flow: ["检查", "综合", "布局布线", "比特流", "拖拽烧录"]

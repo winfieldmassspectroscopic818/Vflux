@@ -1,0 +1,63 @@
+# iCESugar Board Hardware Package
+# 开源 FPGA 工具链 OSS CAD Suite 配合使用
+
+board:
+  name: "iCESugar"
+  vendor: "MuseLab"
+  description: "基于 Lattice iCE40UP5K 的开源 FPGA 开发板"
+  url: "https://github.com/wuxx/icesugar"
+
+fpga:
+  family: "ice40"
+  device: "up5k"
+  package: "sg48"
+  speed: ""
+
+resources:
+  clock:
+    - name: "clk"
+      pin: "35"
+      frequency: "12MHz"
+  leds:
+    - name: "led1"
+      pin: "41"
+    - name: "led2"
+      pin: "40"
+    - name: "led3"
+      pin: "39"
+  buttons:
+    - name: "btn1"
+      pin: "4"
+    - name: "btn2"
+      pin: "3"
+  uart:
+    tx: "6"
+    rx: "5"
+  spi:
+    flash_cs: "16"
+    flash_sck: "15"
+    flash_mosi: "14"
+    flash_miso: "17"
+
+constraints:
+  pcf_file: ""
+
+toolchain:
+  synth:
+    tool: "yosys"
+    arch: "ice40"
+    synth_options: ["-top", "${top_module}"]
+    extra_options: []
+
+  place_and_route:
+    tool: "nextpnr-ice40"
+    arch_options: ["--${device}", "--package", "${package}"]
+    extra_options: []
+
+  pack:
+    tool: "icepack"
+
+  program:
+    tool: "icesprog"
+    interface: "ftdi"
+    extra_options: []

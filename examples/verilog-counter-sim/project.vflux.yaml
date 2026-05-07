@@ -1,0 +1,27 @@
+project:
+  name: verilog_counter_sim
+  directory: ""
+  top_module: counter
+  language: verilog
+  sources:
+    - src/counter.v
+  constraints: []
+  program_target_dir: ""
+board:
+  filename: ""
+  name: ""
+  fpga_family: ""
+  fpga_device: ""
+  fpga_package: ""
+  fpga_speed: ""
+  program_tool: ""
+  program_interface: ""
+toolchain:
+  oss_cad_path: ""
+  extra_args: ""
+flow:
+  simulation:
+    wave: true
+    warnings: true
+    output: output/simulation/sim.vvp
+    testbench: tb/tb_counter.v

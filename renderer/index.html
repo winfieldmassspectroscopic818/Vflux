@@ -1,0 +1,505 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline'" />
+  <title>Vflux - FPGA Development Studio</title>
+  <link rel="icon" href="../assets/icon.png" />
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <header id="topbar">
+    <div class="logo"><img class="logo-img" src="../assets/icon.png" alt="" /><span class="logo-text">Vflux</span></div>
+    <div class="topbar-actions app-menu">
+      <div class="menu-group"><button class="menu-trigger">工程</button><div class="menu-dropdown">
+        <button id="btn-new-project">新建工程</button>
+        <button id="btn-open-project">打开工程</button>
+        <button id="btn-save-project">保存工程</button>
+        <button id="btn-open-project-dir">打开工程目录</button>
+        <button id="btn-menu-project-page">工程管理页</button>
+      </div></div>
+      <div class="menu-group"><button class="menu-trigger">视图</button><div class="menu-dropdown">
+        <button id="btn-toggle-language">English UI</button>
+        <button id="btn-toggle-theme">浅色主题</button>
+        <button id="btn-toggle-compact">紧凑模式</button>
+        <button id="btn-toggle-bottom-log">底部日志</button>
+        <button id="btn-open-report-page">报告中心</button>
+      </div></div>
+      <div class="menu-group"><button class="menu-trigger">工作台</button><div class="menu-dropdown">
+        <button id="btn-menu-build">一键构建</button>
+        <button id="btn-menu-bitstream">生成比特流</button>
+        <button id="btn-menu-program">烧录</button>
+        <button id="btn-menu-debug">验证与调试</button>
+      </div></div>
+    </div>
+    <div class="project-info"><span id="project-name">未打开工程</span><span class="sep">|</span><span id="board-name">未选择板卡</span></div>
+  </header>
+
+  <div id="main-layout">
+    <nav id="pipeline-nav">
+      <div class="pipeline-header">Vflux 工作流</div>
+      <ul id="pipeline-list">
+        <li class="pipeline-step" data-panel="dashboard"><span class="step-icon-nav">&#x2302;</span><span class="step-label">总览</span></li>
+        <li class="pipeline-group" data-group="prepare"><button type="button"><span>准备</span><span class="group-chevron">▾</span></button></li>
+        <li class="pipeline-step" data-panel="project"><span class="step-indicator"></span><span class="step-label">工程</span></li>
+        <li class="pipeline-step" data-panel="examples"><span class="step-indicator"></span><span class="step-label">例程</span></li>
+        <li class="pipeline-step" data-panel="board"><span class="step-indicator"></span><span class="step-label">板卡</span></li>
+        <li class="pipeline-step" data-panel="toolchain"><span class="step-indicator"></span><span class="step-label">工具链</span></li>
+        <li class="pipeline-group" data-group="build"><button type="button"><span>构建</span><span class="group-chevron">▾</span></button></li>
+        <li class="pipeline-step primary-step" data-panel="build-all"><span class="step-indicator"></span><span class="step-label">一键构建</span></li>
+        <li class="pipeline-step" data-panel="check"><span class="step-indicator"></span><span class="step-label">检查</span></li>
+        <li class="pipeline-step" data-panel="synthesis"><span class="step-indicator"></span><span class="step-label">综合</span></li>
+        <li class="pipeline-step" data-panel="pnr"><span class="step-indicator"></span><span class="step-label">布局布线</span></li>
+        <li class="pipeline-step" data-panel="pack"><span class="step-indicator"></span><span class="step-label">生成比特流</span></li>
+        <li class="pipeline-step" data-panel="program"><span class="step-indicator"></span><span class="step-label">烧录</span></li>
+        <li class="pipeline-group" data-group="analysis"><button type="button"><span>分析</span><span class="group-chevron">▾</span></button></li>
+        <li class="pipeline-step" data-panel="timing"><span class="step-indicator"></span><span class="step-label">时序分析</span></li>
+        <li class="pipeline-step" data-panel="floorplan"><span class="step-indicator"></span><span class="step-label">资源统计</span></li>
+        <li class="pipeline-step" data-panel="report"><span class="step-indicator"></span><span class="step-label">报告</span></li>
+        <li class="pipeline-group" data-group="debug"><button type="button"><span>验证与调试</span><span class="group-chevron">▾</span></button></li>
+        <li class="pipeline-step" data-panel="simulation"><span class="step-indicator"></span><span class="step-label">仿真</span></li>
+        <li class="pipeline-step" data-panel="formal"><span class="step-indicator"></span><span class="step-label">形式验证</span></li>
+        <li class="pipeline-step" data-panel="surfer"><span class="step-indicator"></span><span class="step-label">波形查看</span></li>
+        <li class="pipeline-step" data-panel="mcy"><span class="step-indicator"></span><span class="step-label">突变覆盖</span></li>
+        <li class="pipeline-step" data-panel="verilator"><span class="step-indicator"></span><span class="step-label">Verilator</span></li>
+      </ul>
+    </nav>
+
+    <main id="panel-area">
+      <!-- DASHBOARD -->
+      <div class="panel" id="panel-dashboard">
+        <div class="panel-header"><h2>&#x2302; 工程总览</h2></div>
+        <div class="panel-body">
+          <div class="dashboard-cards">
+            <div class="dash-card" id="dash-project">
+              <div class="dash-icon">&#x1F4C1;</div><div class="dash-title">工程</div><div class="dash-value" id="dash-project-val">-</div>
+            </div>
+            <div class="dash-card" id="dash-board">
+              <div class="dash-icon">&#x1F4E6;</div><div class="dash-title">板卡</div><div class="dash-value" id="dash-board-val">-</div>
+            </div>
+            <div class="dash-card" id="dash-fpga">
+              <div class="dash-icon">&#x1F9E0;</div><div class="dash-title">FPGA</div><div class="dash-value" id="dash-fpga-val">-</div>
+            </div>
+            <div class="dash-card" id="dash-progress">
+              <div class="dash-icon">&#x1F504;</div><div class="dash-title">流程进度</div><div class="dash-value" id="dash-progress-val">0/14</div>
+            </div>
+          </div>
+          <div class="progress-bar"><div class="progress-fill" id="dash-progress-bar" style="width:0%"></div></div>
+          <div class="dashboard-log" id="dash-log">
+            <div class="log-header"><span>最近操作</span></div>
+            <pre id="dash-log-content"></pre>
+          </div>
+        </div>
+      </div>
+
+      <!-- PROJECT -->
+      <div class="panel" id="panel-project">
+        <div class="panel-header"><h2>工程配置</h2></div>
+        <div class="panel-body">
+          <div class="form-row"><div class="form-group flex-1"><label>工程名称</label><input type="text" id="cfg-project-name" placeholder="my_fpga_project" /></div>
+          <div class="form-group flex-1"><label>顶层模块</label><div class="input-with-btn"><input type="text" id="cfg-top-module" placeholder="top" /><button id="btn-detect-top" class="btn-small nowrap">&#x1F50D; 检测</button></div></div></div>
+          <div class="form-group"><label>工程目录</label><div class="input-with-btn"><input type="text" id="cfg-project-dir" placeholder="选择工程目录..." readonly /><button id="btn-browse-dir">浏览...</button></div></div>
+          <div class="form-row"><div class="form-group flex-1"><label>语言标准</label><select id="cfg-lang"><option value="verilog">Verilog</option><option value="sv">SystemVerilog</option><option value="vhdl">VHDL</option></select></div>
+          <div class="form-group flex-1"><label>&nbsp;</label><button id="btn-auto-detect" class="btn-secondary full-width">&#x1F50D; 自动检测源文件</button></div>
+          <div class="form-group flex-1"><label>&nbsp;</label><button id="btn-import-project" class="btn-secondary full-width">导入现有工程</button></div></div>
+          <div class="form-group"><label>源文件 <span class="count-badge" id="source-count">0个文件</span></label>
+            <div class="file-manager"><div class="file-list-header"><span>文件路径</span><span>操作</span></div><ul id="source-file-list" class="managed-file-list"></ul><button id="btn-add-source" class="btn-small">+ 添加文件</button></div></div>
+          <div class="form-group"><label>约束文件 (PCF)</label><div class="input-with-btn"><input type="text" id="cfg-constraints" placeholder="constraints/top.pcf" /><button id="btn-add-constraint" class="btn-small">浏览...</button><button id="btn-gen-pcf" class="btn-small">&#x2728; 自动生成</button></div></div>
+          <div class="btn-row"><button id="btn-apply-project" class="btn-primary">应用配置</button><button id="btn-save-project-file" class="btn-secondary">保存工程文件</button></div>
+        </div>
+      </div>
+
+      <!-- EXAMPLES -->
+      <div class="panel" id="panel-examples">
+        <div class="panel-header"><h2>例程工作台</h2></div>
+        <div class="panel-body examples-workbench">
+          <div class="result-card ready" id="example-result"><div><span class="result-kicker">例程状态</span><h3 id="example-summary">等待选择例程</h3></div><span class="result-dot"></span></div>
+          <div class="board-guide">
+            <div>
+              <span class="result-kicker">快速验收</span>
+              <h3>选择一个内置例程，一键复制成工程</h3>
+            </div>
+            <p>例程会被复制到你选择的目录，然后自动作为当前 Vflux 工程打开。也可以直接运行验收，自动完成检查、综合、布局布线、比特流生成和报告汇总。</p>
+          </div>
+          <div class="example-actions">
+            <input type="text" id="example-target-dir" placeholder="选择例程复制到的父目录..." readonly />
+            <button id="btn-example-browse" class="btn-secondary">选择目录</button>
+            <label class="checkbox-label example-option"><input type="checkbox" id="example-advanced-skeleton" checked /><span>同时补齐专业工程骨架</span></label>
+          </div>
+          <div class="example-grid" id="example-grid"></div>
+          <ul class="feedback-list" id="example-feedback-list"></ul>
+        </div>
+      </div>
+
+      <!-- BOARD -->
+      <div class="panel" id="panel-board">
+        <div class="panel-header"><h2>选择板卡</h2></div>
+        <div class="panel-body board-workbench">
+          <div class="board-guide">
+            <div>
+              <span class="result-kicker">板卡向导</span>
+              <h3>先选芯片族，再选开发板</h3>
+            </div>
+            <p>Vflux 会根据芯片族切换 Yosys、nextpnr、打包和烧录工具；没有列出的开发板可以先选 Custom 模板，再手动维护约束文件。</p>
+          </div>
+          <div class="board-filter-row">
+            <div class="board-family-tabs" id="board-family-tabs"></div>
+            <input type="search" id="board-search" placeholder="搜索板卡、厂商、FPGA 型号..." />
+          </div>
+          <div class="board-layout">
+            <div>
+              <div class="board-section-title" id="board-section-title">全部板卡</div>
+              <div class="board-grid" id="board-grid"></div>
+            </div>
+            <div class="board-detail" id="board-detail" style="display:none;"><h3 id="detail-board-name"></h3><table class="info-table"><tr><td>厂商</td><td id="detail-vendor">-</td></tr><tr><td>FPGA 系列</td><td id="detail-family">-</td></tr><tr><td>FPGA 型号</td><td id="detail-device">-</td></tr><tr><td>封装</td><td id="detail-package">-</td></tr><tr><td>时钟</td><td id="detail-clocks">-</td></tr><tr><td>LED</td><td id="detail-leds">-</td></tr><tr><td>按键</td><td id="detail-btns">-</td></tr><tr><td>UART</td><td id="detail-uart">-</td></tr><tr><td>说明</td><td id="detail-description">-</td></tr></table><button id="btn-export-board-draft" class="btn-secondary full-width">导出板卡包草稿</button></div>
+          </div>
+          <details class="custom-board-editor">
+            <summary>图形化创建自定义板卡包</summary>
+            <div class="custom-board-grid">
+              <label>板卡名称 <input type="text" id="custom-board-name" placeholder="My FPGA Board" /></label>
+              <label>厂商 <input type="text" id="custom-board-vendor" placeholder="Custom" /></label>
+              <label>芯片族 <select id="custom-board-family"><option value="ice40">iCE40</option><option value="ecp5">ECP5</option><option value="gowin">Gowin</option></select></label>
+              <label>器件 <input type="text" id="custom-board-device" placeholder="up5k / 25k / GW1NR-9" /></label>
+              <label>封装 <input type="text" id="custom-board-package" placeholder="sg48 / CABGA381 / QFN88" /></label>
+              <label>Speed <input type="text" id="custom-board-speed" placeholder="6" /></label>
+              <label>时钟名 <input type="text" id="custom-board-clock-name" placeholder="clk" /></label>
+              <label>时钟引脚 <input type="text" id="custom-board-clock-pin" placeholder="35 / P3" /></label>
+              <label>时钟频率 <input type="text" id="custom-board-clock-freq" placeholder="12MHz" /></label>
+              <label>LED 资源 <input type="text" id="custom-board-leds" placeholder="led1:41,led2:40" /></label>
+              <label>按键资源 <input type="text" id="custom-board-buttons" placeholder="btn1:4,btn2:3" /></label>
+              <label>烧录工具 <select id="custom-board-program"><option value="openFPGALoader">openFPGALoader</option><option value="icesprog">icesprog</option><option value="ecpprog">ecpprog</option><option value="dfu-util">dfu-util</option></select></label>
+            </div>
+            <div class="btn-row"><button id="btn-save-custom-board" class="btn-primary">保存并选择自定义板卡</button></div>
+          </details>
+        </div>
+      </div>
+
+      <!-- TOOLCHAIN -->
+      <div class="panel" id="panel-toolchain">
+        <div class="panel-header"><h2>工具链配置</h2></div>
+        <div class="panel-body">
+          <div class="result-card ready" id="toolchain-result"><div><span class="result-kicker">环境验收</span><h3 id="toolchain-summary">等待运行环境验收</h3></div><span class="result-dot"></span></div>
+          <div class="toolchain-cards">
+            <div class="tl-card"><span class="tl-card-step">1. 综合</span><span class="tl-card-tool" id="tl-synth">Yosys</span></div>
+            <div class="tl-card"><span class="tl-card-step">2. P&R</span><span class="tl-card-tool" id="tl-pnr">nextpnr</span></div>
+            <div class="tl-card"><span class="tl-card-step">3. 比特流</span><span class="tl-card-tool" id="tl-pack">icepack</span></div>
+            <div class="tl-card"><span class="tl-card-step">4. 烧录</span><span class="tl-card-tool" id="tl-prog">icesprog</span></div>
+          </div>
+          <div class="form-group"><label>OSS CAD Suite 路径</label><div class="input-with-btn"><input type="text" id="cfg-oss-path" readonly /><button id="btn-browse-oss">浏览...</button></div></div>
+          <div class="toolchain-actions">
+            <button id="btn-probe-toolchain" class="btn-primary">运行环境验收</button>
+            <span id="toolchain-probe-summary" class="muted-text">尚未检测</span>
+          </div>
+          <div class="toolchain-acceptance-grid" id="toolchain-acceptance-grid"></div>
+          <div class="tool-matrix" id="toolchain-matrix"></div>
+          <ul class="feedback-list" id="toolchain-feedback-list"></ul>
+        </div>
+      </div>
+
+      <!-- CHECK / SYNTHESIS / PNR / PACK panels abbreviated (will inject buttons via JS) -->
+      <div class="panel" id="panel-check">
+        <div class="panel-header"><h2>代码检查</h2></div>
+        <div class="panel-body workflow-panel">
+          <div class="result-card ready" id="check-result">
+            <div>
+              <span class="result-kicker">检查状态</span>
+              <h3 id="check-summary">可以开始检查</h3>
+            </div>
+            <span class="result-dot"></span>
+          </div>
+          <ul class="feedback-list" id="check-feedback-list"></ul>
+          <div class="btn-row action-row">
+            <button id="btn-check-run" class="btn-primary">&#x25B6; 开始检查</button>
+            <button id="btn-check-cancel" class="btn-warn">&#x25A0; 停止</button>
+            <button id="btn-check-clear" class="btn-secondary">重置反馈</button>
+          </div>
+          <pre id="check-cmd-preview" class="technical-output" aria-hidden="true"></pre>
+          <pre id="check-log" class="technical-output" aria-hidden="true"></pre>
+        </div>
+      </div>
+
+      <div class="panel" id="panel-synthesis">
+        <div class="panel-header"><h2>综合工作台</h2></div>
+        <div class="panel-body workflow-panel">
+          <div class="result-card ready" id="synth-result"><div><span class="result-kicker">综合状态</span><h3 id="synth-summary">等待综合</h3></div><span class="result-dot"></span></div>
+          <div class="workbench-grid">
+            <div class="info-tile"><span>顶层模块</span><strong id="synth-top-label">top</strong></div>
+            <div class="info-tile"><span>目标架构</span><strong id="synth-family-label">-</strong></div>
+            <div class="info-tile"><span>输出网表</span><strong id="synth-output-label">output/synthesis/top.json</strong></div>
+          </div>
+          <div class="option-workspace"><div class="advanced-options">
+            <div class="advanced-title">综合高级选项</div>
+            <details open><summary>优化流程</summary><div class="option-grid">
+              <label><input type="checkbox" id="synth-opt-proc" checked /> 时序逻辑化简 / proc</label>
+              <label><input type="checkbox" id="synth-opt-opt" checked /> 常量与无用逻辑优化 / opt</label>
+              <label><input type="checkbox" id="synth-opt-fsm" checked /> FSM 提取与优化 / fsm</label>
+              <label><input type="checkbox" id="synth-opt-memory" checked /> 存储器映射 / memory</label>
+              <label><input type="checkbox" id="synth-opt-splitnets" /> 总线拆分 / splitnets</label>
+              <label><input type="checkbox" id="synth-opt-flatten" /> 展平层次 / flatten</label>
+            </div></details>
+            <details><summary>逻辑压缩与时序</summary><div class="option-grid">
+              <label><input type="checkbox" id="synth-opt-abc" checked /> ABC 逻辑压缩 / abc</label>
+              <label><input type="checkbox" id="synth-opt-abc2" /> 使用 ABC2 实验流程</label>
+              <label><input type="checkbox" id="synth-opt-abc9" /> 启用 ABC9 映射（ECP5/iCE40）</label>
+              <label><input type="checkbox" id="synth-opt-multishare" /> 乘加/共享优化 share -aggressive</label>
+              <label><input type="checkbox" id="synth-opt-noabc9" /> 禁用 ABC9 映射</label>
+              <label><input type="checkbox" id="synth-opt-dff" /> 触发器映射优化 / -dff</label>
+              <label><input type="checkbox" id="synth-opt-retime" /> ABC retime 时序重定时</label>
+              <label><input type="checkbox" id="synth-opt-nodffe" /> 禁用 DFFE 映射</label>
+            </div></details>
+            <details><summary>器件资源映射</summary><div class="option-grid">
+              <label><input type="checkbox" id="synth-opt-nobram" /> 禁用 BRAM 映射</label>
+              <label><input type="checkbox" id="synth-opt-spram" /> 启用 SPRAM 映射</label>
+              <label><input type="checkbox" id="synth-opt-dsp" /> 启用 DSP 映射</label>
+              <label><input type="checkbox" id="synth-opt-nocarry" /> 禁用进位链映射</label>
+              <label><input type="checkbox" id="synth-opt-no-rw-check" /> 放宽读写冲突检查</label>
+              <label><input type="checkbox" id="synth-opt-no-serdes" /> ECP5 禁用 SERDES 映射</label>
+              <label><input type="checkbox" id="synth-opt-dont-use-ram" /> Gowin 避免 RAM 专用资源</label>
+            </div></details>
+          </div><aside class="option-help-panel" id="synth-option-help"><span>参数说明</span><strong>选择一个高级选项</strong><p>点击或聚焦左侧选项后，这里会显示作用、CLI 参数、适用芯片族和风险提示。</p></aside></div>
+          <ul class="feedback-list" id="synth-feedback-list"></ul>
+          <div class="btn-row action-row"><button id="btn-synth-run" class="btn-primary">&#x25B6; 开始综合</button><button id="btn-synth-cancel" class="btn-warn">&#x25A0; 停止</button><button id="btn-synth-clear" class="btn-secondary">重置反馈</button></div>
+          <input type="hidden" id="synth-top-module" />
+          <pre id="synth-cmd-preview" class="technical-output" aria-hidden="true"></pre>
+          <pre id="synth-log" class="technical-output" aria-hidden="true"></pre>
+        </div>
+      </div>
+
+      <div class="panel" id="panel-pnr">
+        <div class="panel-header"><h2>布局布线工作台</h2></div>
+        <div class="panel-body workflow-panel">
+          <div class="result-card ready" id="pnr-result"><div><span class="result-kicker">布局布线状态</span><h3 id="pnr-summary">等待布局布线</h3></div><span class="result-dot"></span></div>
+          <div class="workbench-grid">
+            <div class="info-tile"><span>目标器件</span><strong id="pnr-device-label">未选择板卡</strong></div>
+            <div class="info-tile"><span>约束文件</span><strong id="pnr-constraints-label">未设置</strong></div>
+            <div class="info-tile"><span>布局结果</span><strong id="pnr-output-label">output/pnr/top.asc</strong></div>
+          </div>
+          <div class="option-workspace"><div class="advanced-options">
+            <div class="advanced-title">布局布线高级选项</div>
+            <details open><summary>时序与约束</summary><div class="option-grid">
+              <label><input type="checkbox" id="pnr-opt-timing" checked /> 启用时序驱动布局</label>
+              <label><input type="checkbox" id="pnr-opt-ignore-timing" /> 忽略时序约束 / ignore timing</label>
+              <label><input type="checkbox" id="pnr-opt-timing-allow-fail" /> 允许时序未收敛产物</label>
+              <label><input type="checkbox" id="pnr-opt-allow-unconstrained" /> 允许未约束 IO</label>
+              <label>目标频率 MHz <input type="number" id="pnr-frequency" value="12" min="1" /></label>
+            </div></details>
+            <details><summary>算法与并行</summary><div class="option-grid">
+              <label>随机种子 <input type="number" id="pnr-seed" value="1" min="1" /></label>
+              <label>布局算法 <select id="pnr-placer"><option value="">默认</option><option value="heap">heap</option><option value="sa">sa</option></select></label>
+              <label>布线算法 <select id="pnr-router"><option value="">默认</option><option value="router1">router1</option><option value="router2">router2</option></select></label>
+              <label>线程数 <input type="number" id="pnr-threads" value="1" min="1" /></label>
+            </div></details>
+            <details><summary>诊断与报告</summary><div class="option-grid">
+              <label><input type="checkbox" id="pnr-opt-report" checked /> 输出 JSON 报告</label>
+              <label><input type="checkbox" id="pnr-opt-svg" /> 输出布局/布线 SVG</label>
+              <label><input type="checkbox" id="pnr-opt-sdf" /> 输出 SDF 时序文件</label>
+              <label><input type="checkbox" id="pnr-opt-detailed-timing" /> 输出详细时序报告</label>
+              <label><input type="checkbox" id="pnr-opt-werror" /> 将警告视为失败</label>
+            </div></details>
+            <details><summary>专家兼容性</summary><div class="option-grid">
+              <label><input type="checkbox" id="pnr-opt-ignore-loops" /> 忽略组合环警告</label>
+              <label><input type="checkbox" id="pnr-opt-promote-globals" checked /> 自动提升全局时钟网络</label>
+              <label><input type="checkbox" id="pnr-opt-no-tmdriv" /> 关闭三态驱动检查</label>
+              <label><input type="checkbox" id="pnr-opt-no-serdes" /> ECP5 禁用 SERDES 相关处理</label>
+              <label><input type="checkbox" id="pnr-opt-dont-use-ram" /> Gowin 禁用 RAM 资源偏好</label>
+              <label><input type="checkbox" id="pnr-opt-no-dsp" /> Gowin/ECP5 避免 DSP 资源</label>
+              <label>LPF 约束 <input type="text" id="pnr-lpf-file" placeholder="constraints/top.lpf" /></label>
+              <label>CST 约束 <input type="text" id="pnr-cst-file" placeholder="constraints/top.cst" /></label>
+              <label>速度等级 <input type="text" id="pnr-speed-grade" placeholder="6 / 8 / C8/I7" /></label>
+              <label>运行阶段 <select id="pnr-stage"><option value="">完整布局布线</option><option value="pack-only">仅 Pack</option><option value="no-place">跳过 Place</option><option value="no-route">跳过 Route</option><option value="no-pack">跳过 Pack</option></select></label>
+              <label>pre-pack 脚本 <span class="input-with-btn"><input type="text" id="pnr-hook-pre-pack" placeholder="scripts/pre_pack.py" /><button id="btn-pnr-hook-pre-pack" class="btn-small" type="button">浏览...</button></span></label>
+              <label>pre-place 脚本 <span class="input-with-btn"><input type="text" id="pnr-hook-pre-place" placeholder="scripts/pre_place.py" /><button id="btn-pnr-hook-pre-place" class="btn-small" type="button">浏览...</button></span></label>
+              <label>pre-route 脚本 <span class="input-with-btn"><input type="text" id="pnr-hook-pre-route" placeholder="scripts/pre_route.py" /><button id="btn-pnr-hook-pre-route" class="btn-small" type="button">浏览...</button></span></label>
+              <label>post-route 脚本 <span class="input-with-btn"><input type="text" id="pnr-hook-post-route" placeholder="scripts/post_route.py" /><button id="btn-pnr-hook-post-route" class="btn-small" type="button">浏览...</button></span></label>
+            </div></details>
+          </div><aside class="option-help-panel" id="pnr-option-help"><span>参数说明</span><strong>选择一个高级选项</strong><p>这里会解释 nextpnr 参数的作用、适用芯片族和可能风险。</p></aside></div>
+          <ul class="feedback-list" id="pnr-feedback-list"></ul>
+          <div class="btn-row action-row"><button id="btn-pnr-run" class="btn-primary">&#x25B6; 开始布局布线</button><button id="btn-pnr-cancel" class="btn-warn">&#x25A0; 停止</button><button id="btn-pnr-clear" class="btn-secondary">重置反馈</button></div>
+          <input type="hidden" id="pnr-device" /><input type="hidden" id="pnr-constraints" />
+          <pre id="pnr-cmd-preview" class="technical-output" aria-hidden="true"></pre>
+          <pre id="pnr-log" class="technical-output" aria-hidden="true"></pre>
+        </div>
+      </div>
+
+      <div class="panel" id="panel-pack">
+        <div class="panel-header"><h2>生成比特流工作台</h2></div>
+        <div class="panel-body workflow-panel bitstream-workbench">
+          <div class="result-card ready" id="pack-result"><div><span class="result-kicker">比特流状态</span><h3 id="pack-summary">等待生成比特流</h3></div><span class="result-dot"></span></div>
+          <div class="bitstream-target">
+            <span>最终产物</span>
+            <strong id="pack-bitstream-label">output/bitstream/top.bin</strong>
+          </div>
+          <div class="workbench-grid">
+            <div class="info-tile"><span>输入布局文件</span><strong id="pack-input-label">output/pnr/top.asc</strong></div>
+            <div class="info-tile"><span>目标板卡</span><strong id="pack-board-label">未选择板卡</strong></div>
+            <div class="info-tile"><span>下一步</span><strong id="pack-next-label">烧录或报告</strong></div>
+          </div>
+          <div class="advanced-options">
+            <div class="advanced-title">比特流高级选项</div>
+            <details open><summary>产物</summary><div class="option-grid">
+              <label><input type="checkbox" id="pack-opt-compress" /> 压缩 bitstream（支持的架构生效）</label>
+              <label><input type="checkbox" id="pack-opt-crc" /> 写入/启用 CRC</label>
+              <label><input type="checkbox" id="pack-opt-verify-crc" /> 生成后 CRC 检查</label>
+              <label><input type="checkbox" id="pack-opt-encrypt" /> 启用加密/密钥参数</label>
+              <label><input type="checkbox" id="pack-opt-svf" /> 同时输出 SVF/JTAG 文件</label>
+              <label><input type="checkbox" id="pack-opt-flash" /> ECP5 生成 Flash 友好镜像</label>
+              <label><input type="checkbox" id="pack-opt-background" /> ECP5 background reconfiguration</label>
+              <label>配置频率 <input type="text" id="pack-opt-freq" placeholder="38.8 / 62" /></label>
+              <label>IDCODE <input type="text" id="pack-opt-idcode" placeholder="可选" /></label>
+              <label>密钥文件 <input type="text" id="pack-opt-key" placeholder="keys/design.key" /></label>
+              <label><input type="checkbox" id="pack-opt-metadata" checked /> 写入构建元数据</label>
+              <label><input type="checkbox" id="pack-opt-open-folder" /> 生成后打开产物目录</label>
+            </div></details>
+            <details open><summary>反解与可视化</summary><div class="option-grid">
+              <label><input type="checkbox" id="pack-opt-verify-unpack" /> 生成后反解检查</label>
+              <label><input type="checkbox" id="pack-opt-vlog" /> 生成门级 Verilog</label>
+              <label><input type="checkbox" id="pack-opt-html" /> 生成内部布线 HTML</label>
+            </div></details>
+          </div>
+          <ul class="feedback-list" id="pack-feedback-list"></ul>
+          <div class="btn-row action-row"><button id="btn-pack-run" class="btn-primary">&#x25B6; 生成比特流</button><button id="btn-pack-cancel" class="btn-warn">&#x25A0; 停止</button><button id="btn-pack-clear" class="btn-secondary">重置反馈</button></div>
+          <pre id="pack-cmd-preview" class="technical-output" aria-hidden="true"></pre>
+          <pre id="pack-log" class="technical-output" aria-hidden="true"></pre>
+        </div>
+      </div>
+
+      <!-- TIMING -->
+      <div class="panel" id="panel-timing"><div class="panel-header"><h2>时序分析工作台</h2></div><div class="panel-body workflow-panel"><div class="result-card ready" id="timing-result"><div><span class="result-kicker">时序状态</span><h3 id="timing-summary">等待时序分析</h3></div><span class="result-dot"></span></div><div class="advanced-options"><div class="advanced-title">时序高级选项</div><label><input type="checkbox" id="timing-opt-max" checked /> 估算最大频率</label><label><input type="checkbox" id="timing-opt-report" checked /> 保存时序摘要</label><label>目标频率 MHz <input type="number" id="timing-target" value="12" min="1" /></label></div><ul class="feedback-list" id="timing-feedback-list"></ul><div class="btn-row action-row"><button id="btn-timing-run" class="btn-primary">&#x25B6; 运行时序分析</button><button id="btn-timing-cancel" class="btn-warn">&#x25A0; 取消</button><button id="btn-timing-clear" class="btn-secondary">重置反馈</button></div><pre id="timing-cmd-preview" class="technical-output" aria-hidden="true"></pre><pre id="timing-log" class="technical-output" aria-hidden="true"></pre></div></div>
+
+      <!-- FLOORPLAN -->
+      <div class="panel" id="panel-floorplan"><div class="panel-header"><h2>资源统计工作台</h2></div><div class="panel-body workflow-panel"><div class="result-card ready" id="floorplan-result"><div><span class="result-kicker">资源状态</span><h3 id="floorplan-summary">等待统计资源</h3></div><span class="result-dot"></span></div><div class="advanced-options"><div class="advanced-title">资源统计高级选项</div><label><input type="checkbox" id="floorplan-opt-html" /> 同时生成 Floorplan HTML</label><label><input type="checkbox" id="floorplan-opt-save" checked /> 保存统计摘要</label></div><ul class="feedback-list" id="floorplan-feedback-list"></ul><div class="btn-row action-row"><button id="btn-floorplan-stat" class="btn-primary">&#x1F4CA; 资源统计</button><button id="btn-floorplan-html" class="btn-secondary">&#x1F5FA; 生成 Floorplan HTML</button><button id="btn-floorplan-clear" class="btn-secondary">重置反馈</button></div><pre id="floorplan-log" class="technical-output" aria-hidden="true"></pre></div></div>
+
+      <!-- PROGRAM -->
+      <div class="panel" id="panel-program">
+        <div class="panel-header"><h2>烧录工作台</h2></div>
+        <div class="panel-body workflow-panel">
+          <div class="result-card ready" id="prog-result"><div><span class="result-kicker">烧录状态</span><h3 id="prog-summary">等待连接开发板</h3></div><span class="result-dot"></span></div>
+          <div class="workbench-grid">
+            <div class="info-tile"><span>烧录方式</span><strong><select id="prog-method"><option value="board">板卡默认</option><option value="icesprog">iCESugar / icesprog</option><option value="openfpgaloader">openFPGALoader</option><option value="ecpprog">ecpprog</option><option value="dfu">DFU</option><option value="jtag">JTAG</option><option value="mass-storage">拖拽盘符</option></select></strong></div>
+            <div class="info-tile"><span>设备状态</span><strong><div id="prog-device-status" class="status-badge unknown">未检测</div></strong></div>
+            <div class="info-tile"><span>比特流文件</span><strong id="prog-bitstream-label">output/bitstream/top.bin</strong></div>
+          </div>
+          <div class="option-workspace"><div class="advanced-options">
+            <div class="advanced-title">烧录高级选项</div>
+            <label><input type="checkbox" id="prog-opt-verify" /> 烧录后校验（工具支持时）</label>
+            <label><input type="checkbox" id="prog-opt-flash" /> openFPGALoader 写入 Flash</label>
+            <label><input type="checkbox" id="prog-opt-external-flash" /> 使用外部 Flash</label>
+            <label><input type="checkbox" id="prog-opt-reset" /> 下载后复位/启动</label>
+            <label>Cable <input type="text" id="prog-opt-cable" placeholder="ftdi / cmsisdap / jtag" /></label>
+            <label>Board 覆盖 <input type="text" id="prog-opt-board" placeholder="tangnano9k / tangnano20k" /></label>
+            <label>JTAG 频率 <input type="text" id="prog-opt-frequency" placeholder="6M / 12000000" /></label>
+            <label>Flash Offset <input type="text" id="prog-opt-offset" placeholder="0x000000" /></label>
+            <label><input type="checkbox" id="prog-opt-dfu-alt" checked /> DFU 使用 alt 0</label>
+            <label><input type="checkbox" id="prog-opt-skip-detect" /> 跳过预检测直接烧录</label>
+            <div class="input-with-btn full-row"><input type="text" id="prog-mass-storage-dir" placeholder="开发板盘符目录，例如 E:\\" /><button id="btn-prog-browse-mass" class="btn-small">选择盘符...</button></div>
+          </div><aside class="option-help-panel" id="prog-option-help"><span>参数说明</span><strong>选择一个烧录选项</strong><p>这里会解释烧录方式、驱动/接口要求和失败时的处理建议。</p></aside></div>
+          <ul class="feedback-list" id="prog-feedback-list"></ul>
+          <div class="program-diagnostic-grid" id="prog-diagnostic-grid"></div>
+          <div class="btn-row action-row"><button id="btn-prog-diagnose" class="btn-secondary">烧录诊断向导</button><button id="btn-prog-detect" class="btn-secondary">&#x1F50D; 检测设备</button><button id="btn-prog-run" class="btn-primary">&#x26A1; 开始烧录</button><button id="btn-prog-cancel" class="btn-warn">&#x25A0; 停止</button><button id="btn-prog-clear" class="btn-secondary">重置反馈</button></div>
+          <pre id="prog-cmd-preview" class="technical-output" aria-hidden="true"></pre>
+          <pre id="prog-log" class="technical-output" aria-hidden="true"></pre>
+        </div>
+      </div>
+
+      <!-- SIMULATION -->
+      <div class="panel" id="panel-simulation"><div class="panel-header"><h2>仿真工作台</h2></div><div class="panel-body workflow-panel"><div class="result-card ready" id="sim-result"><div><span class="result-kicker">仿真状态</span><h3 id="sim-summary">等待运行仿真</h3></div><span class="result-dot"></span></div><div class="workbench-grid"><div class="info-tile"><span>仿真引擎</span><strong><select id="sim-engine"><option value="iverilog">Icarus Verilog</option><option value="verilator">Verilator</option><option value="gtkwave">GTKWave (波形)</option></select></strong></div><div class="info-tile"><span>Testbench</span><strong><div class="input-with-btn"><input type="text" id="sim-tb-file" placeholder="tb/tb_top.v" /><button id="btn-add-tb" class="btn-small">浏览...</button></div></strong></div></div><div class="advanced-options"><div class="advanced-title">仿真高级选项</div><details open><summary>输入与波形</summary><div class="option-grid"><label><input type="checkbox" id="sim-opt-wave" checked /> 生成 VCD 波形</label><label><input type="checkbox" id="sim-opt-warnings" checked /> 显示警告诊断</label><label><input type="checkbox" id="sim-opt-trace-fst" /> Verilator 使用 FST 波形</label><label>仿真输出 <input type="text" id="sim-output-file" value="output/simulation/sim.vvp" /></label></div></details><details><summary>编译参数</summary><div class="option-grid"><label>Include 目录 <input type="text" id="sim-include-dirs" placeholder="rtl/include;ip/common" /></label><label>宏定义 <input type="text" id="sim-defines" placeholder="SIM=1;DEBUG" /></label><label>Timescale <input type="text" id="sim-timescale" placeholder="1ns/1ps" /></label></div></details><details><summary>Verilator 专家参数</summary><div class="option-grid"><label>CFLAGS <input type="text" id="sim-cflags" placeholder="-O2 -std=c++17" /></label><label>LDFLAGS <input type="text" id="sim-ldflags" placeholder="-lpthread" /></label></div></details></div><ul class="feedback-list" id="sim-feedback-list"></ul><div class="btn-row action-row"><button id="btn-sim-run" class="btn-primary">&#x25B6; 运行仿真</button><button id="btn-sim-wave" class="btn-secondary">&#x1F4C8; 打开波形</button><button id="btn-sim-cancel" class="btn-warn">&#x25A0; 取消</button><button id="btn-sim-clear" class="btn-secondary">重置反馈</button></div><pre id="sim-cmd-preview" class="technical-output" aria-hidden="true"></pre><pre id="sim-log" class="technical-output" aria-hidden="true"></pre></div></div>
+
+      <!-- FORMAL -->
+      <div class="panel" id="panel-formal"><div class="panel-header"><h2>形式验证工作台</h2></div><div class="panel-body workflow-panel"><div class="result-card ready" id="formal-result"><div><span class="result-kicker">验证状态</span><h3 id="formal-summary">等待运行验证</h3></div><span class="result-dot"></span></div><div class="workbench-grid"><div class="info-tile"><span>验证模式</span><strong><select id="formal-mode"><option value="bmc">BMC</option><option value="prove">Prove</option><option value="cover">Cover</option></select></strong></div><div class="info-tile"><span>.sby 配置</span><strong><div class="input-with-btn"><input type="text" id="formal-sby-file" placeholder="formal/proof.sby" /><button id="btn-add-sby" class="btn-small">浏览...</button><button id="btn-gen-sby" class="btn-small">生成</button></div></strong></div></div><div class="advanced-options"><div class="advanced-title">形式验证高级选项</div><label>深度 <input type="number" id="formal-depth" value="20" min="1" /></label><label>引擎 <select id="formal-engine"><option value="smtbmc">smtbmc</option><option value="abc pdr">abc pdr</option></select></label><label><input type="checkbox" id="formal-opt-trace" checked /> 保留反例波形</label></div><ul class="feedback-list" id="formal-feedback-list"></ul><div class="btn-row action-row"><button id="btn-formal-run" class="btn-primary">&#x25B6; 运行验证</button><button id="btn-formal-cancel" class="btn-warn">&#x25A0; 取消</button><button id="btn-formal-clear" class="btn-secondary">重置反馈</button></div><pre id="formal-cmd-preview" class="technical-output" aria-hidden="true"></pre><pre id="formal-log" class="technical-output" aria-hidden="true"></pre></div></div>
+
+      <!-- SURFER -->
+      <div class="panel" id="panel-surfer"><div class="panel-header"><h2>波形查看工作台</h2></div><div class="panel-body workflow-panel"><div class="result-card ready" id="surfer-result"><div><span class="result-kicker">波形状态</span><h3 id="surfer-summary">等待选择波形</h3></div><span class="result-dot"></span></div><div class="workbench-grid"><div class="info-tile"><span>波形文件</span><strong><div class="input-with-btn"><input type="text" id="surfer-file" placeholder="output/simulation/dump.vcd" /><button id="btn-surfer-browse" class="btn-small">浏览...</button></div></strong></div></div><ul class="feedback-list" id="surfer-feedback-list"></ul><div class="btn-row action-row"><button id="btn-surfer-open" class="btn-primary">&#x1F4C8; 打开 Surfer</button><button id="btn-surfer-clear" class="btn-secondary">重置反馈</button></div><pre id="surfer-cmd-preview" class="technical-output" aria-hidden="true"></pre><pre id="surfer-log" class="technical-output" aria-hidden="true"></pre></div></div>
+
+      <!-- MCY -->
+      <div class="panel" id="panel-mcy"><div class="panel-header"><h2>突变覆盖工作台</h2></div><div class="panel-body workflow-panel"><div class="result-card ready" id="mcy-result"><div><span class="result-kicker">覆盖状态</span><h3 id="mcy-summary">等待运行 MCY</h3></div><span class="result-dot"></span></div><div class="workbench-grid"><div class="info-tile"><span>MCY 配置</span><strong><div class="input-with-btn"><input type="text" id="mcy-config" placeholder="mcy/top.cfg" /><button id="btn-mcy-browse" class="btn-small">浏览...</button><button id="btn-mcy-gen" class="btn-small">生成</button></div></strong></div></div><div class="advanced-options"><div class="advanced-title">突变覆盖高级选项</div><label>突变规模 <input type="number" id="mcy-size" value="10" min="1" /></label><label><input type="checkbox" id="mcy-opt-keep" checked /> 保留工作目录</label></div><ul class="feedback-list" id="mcy-feedback-list"></ul><div class="btn-row action-row"><button id="btn-mcy-run" class="btn-primary">&#x25B6; 运行 MCY</button><button id="btn-mcy-cancel" class="btn-warn">&#x25A0; 取消</button><button id="btn-mcy-clear" class="btn-secondary">重置反馈</button></div><pre id="mcy-cmd-preview" class="technical-output" aria-hidden="true"></pre><pre id="mcy-log" class="technical-output" aria-hidden="true"></pre></div></div>
+
+      <!-- VERILATOR -->
+      <div class="panel" id="panel-verilator"><div class="panel-header"><h2>Verilator 工作台</h2></div><div class="panel-body workflow-panel"><div class="result-card ready" id="verilator-result"><div><span class="result-kicker">Verilator 状态</span><h3 id="verilator-summary">等待运行</h3></div><span class="result-dot"></span></div><div class="workbench-grid"><div class="info-tile"><span>模式</span><strong><select id="verilator-mode"><option value="sim">编译仿真</option><option value="lint">Lint 检查</option><option value="coverage">覆盖率收集</option><option value="trace">波形追踪</option></select></strong></div><div class="info-tile"><span>C++ Testbench</span><strong><div class="input-with-btn"><input type="text" id="verilator-tb" placeholder="tb/tb_top.cpp" /><button id="btn-verilator-browse" class="btn-small">浏览...</button><button id="btn-verilator-gen-tb" class="btn-small">生成</button></div></strong></div></div><div class="advanced-options"><div class="advanced-title">Verilator 高级选项</div><label><input type="checkbox" id="verilator-opt-wall" checked /> 启用 -Wall</label><label><input type="checkbox" id="verilator-opt-trace" /> 启用 --trace</label><label><input type="checkbox" id="verilator-opt-coverage" /> 启用 --coverage</label></div><ul class="feedback-list" id="verilator-feedback-list"></ul><div class="btn-row action-row"><button id="btn-verilator-run" class="btn-primary">&#x25B6; 运行 Verilator</button><button id="btn-verilator-cancel" class="btn-warn">&#x25A0; 取消</button><button id="btn-verilator-clear" class="btn-secondary">重置反馈</button></div><pre id="verilator-cmd-preview" class="technical-output" aria-hidden="true"></pre><pre id="verilator-log" class="technical-output" aria-hidden="true"></pre></div></div>
+
+      <!-- REPORT -->
+      <div class="panel" id="panel-report"><div class="panel-header"><h2>报告中心</h2></div><div class="panel-body workflow-panel">
+        <div class="result-card ready" id="report-result"><div><span class="result-kicker">构建报告</span><h3 id="report-summary">等待刷新报告</h3></div><span class="result-dot"></span></div>
+        <div class="report-status-row" id="report-status-summary"></div>
+        <div class="report-grid" id="report-grid"><div class="report-card"><h3>验收结论</h3><div id="report-acceptance"></div></div><div class="report-card"><h3>资源与器件</h3><div id="report-resource"></div></div><div class="report-card"><h3>时序与产物</h3><div id="report-timing"></div></div><div class="report-card"><h3>引脚与约束</h3><div id="report-pins"></div></div><div class="report-card report-card-wide"><h3>构建产物</h3><div id="report-artifacts"></div></div><div class="report-card"><h3>图形预览</h3><div id="report-visual-preview"></div></div><div class="report-card"><h3>构建时间线</h3><div id="report-timeline"></div></div></div>
+        <ul class="feedback-list" id="report-feedback-list"></ul>
+        <div class="btn-row"><button id="btn-report-refresh" class="btn-primary">刷新报告</button><button id="btn-report-export-html" class="btn-secondary">导出 HTML 报告</button><button id="btn-report-open-dir" class="btn-secondary">打开工程目录</button></div>
+      </div></div>
+
+      <!-- BUILD ALL -->
+      <div class="panel" id="panel-build-all"><div class="panel-header"><h2>一键构建</h2></div><div class="panel-body workflow-panel">
+        <div class="result-card ready" id="build-result"><div><span class="result-kicker">构建状态</span><h3 id="build-summary">等待一键构建</h3></div><span class="result-dot"></span></div>
+        <p class="build-desc">自动按顺序执行：检查 → 综合 → 布局布线 → 生成比特流 → 时序分析 → 资源统计 → 报告</p>
+        <div class="progress-bar"><div class="progress-fill" id="build-progress" style="width:0%"></div></div>
+        <div id="build-step-list"></div>
+        <ul class="feedback-list" id="build-feedback-list"></ul>
+        <div class="btn-row action-row"><button id="btn-build-all-run" class="btn-primary">&#x25B6; 一键构建</button><button id="btn-build-all-cancel" class="btn-warn">&#x25A0; 取消</button><button id="btn-build-all-clear" class="btn-secondary">重置反馈</button></div>
+        <pre id="build-all-log" class="technical-output" aria-hidden="true"></pre>
+      </div></div>
+    </main>
+  </div>
+
+  <!-- BOTTOM LOG -->
+  <div id="bottom-log" class="collapsed"><div class="bottom-log-header" id="bottom-log-toggle"><span>全局日志</span><span class="toggle-icon">&#x25B2;</span></div><pre id="global-log"></pre></div>
+
+  <footer id="statusbar"><span id="status-text">就绪</span><span class="status-sep">|</span><span id="status-pipeline">等待开始</span></footer>
+
+  <div id="language-modal" class="modal-overlay" style="display:none;">
+    <div class="modal-box language-box">
+      <div class="modal-header"><h2>选择界面语言 / Select Language</h2></div>
+      <div class="modal-body">
+        <p class="muted-text">请选择 Vflux 的界面语言。你之后也可以在“视图”菜单中切换。</p>
+        <p class="muted-text">Choose the Vflux interface language. You can change it later from the View menu.</p>
+        <div class="language-actions">
+          <button id="btn-lang-zh" class="btn-primary">中文界面</button>
+          <button id="btn-lang-en" class="btn-secondary">English UI</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- NEW PROJECT MODAL -->
+  <div id="new-project-modal" class="modal-overlay" style="display:none;">
+    <div class="modal-box"><div class="modal-header"><h2>新建 FPGA 工程</h2><button class="modal-close" id="modal-close">&times;</button></div>
+    <div class="modal-body">
+      <div class="form-group"><label>工程名称</label><input type="text" id="modal-project-name" placeholder="my_fpga_project" /></div>
+      <div class="form-group"><label>工程位置</label><div class="input-with-btn"><input type="text" id="modal-project-location" placeholder="选择父目录..." readonly /><button id="modal-browse-location" class="btn-small">浏览...</button></div></div>
+      <div class="modal-project-path"><span class="muted">完整路径：</span><code id="modal-full-path">-\</code></div>
+      <div class="form-row"><div class="form-group flex-1"><label>顶层模块名</label><input type="text" id="modal-top-module" placeholder="top" value="top" /></div><div class="form-group flex-1"><label>语言标准</label><select id="modal-language"><option value="verilog">Verilog</option><option value="sv">SystemVerilog</option><option value="vhdl">VHDL</option></select></div></div>
+      <div class="form-group"><label>目标板卡</label><select id="modal-board-select"><option value="">稍后选择</option></select></div>
+      <div class="form-group"><label class="checkbox-label"><input type="checkbox" id="modal-create-template" checked /><span>自动生成顶层模板文件</span></label></div>
+      <div class="form-group"><label class="checkbox-label"><input type="checkbox" id="modal-gen-pcf" checked /><span>根据板卡自动生成约束文件</span></label></div>
+      <div class="form-group"><label class="checkbox-label"><input type="checkbox" id="modal-advanced-skeleton" checked /><span>同时生成 SDC/TCL/VH/形式验证等专业工程骨架</span></label></div>
+      <div class="form-group"><label class="checkbox-label"><input type="checkbox" id="modal-open-vscode" checked /><span>创建后自动用 VS Code 打开</span></label></div>
+    </div>
+    <div class="modal-footer"><button id="modal-cancel" class="btn-secondary">取消</button><button id="modal-create" class="btn-primary">创建工程</button></div></div>
+  </div>
+
+  <script src="config.js"></script>
+  <script src="pipeline.js"></script>
+  <script src="diagnostics.js"></script>
+  <script src="tool-step-ui.js"></script>
+  <script src="i18n.js"></script>
+  <script src="option-help.js"></script>
+  <script src="panels/dashboard.js"></script>
+  <script src="panels/new-project-modal.js"></script>
+  <script src="panels/project.js"></script>
+  <script src="panels/examples.js"></script>
+  <script src="panels/board.js"></script>
+  <script src="panels/toolchain.js"></script>
+  <script src="panels/check.js"></script>
+  <script src="panels/synthesis.js"></script>
+  <script src="panels/pnr.js"></script>
+  <script src="panels/pack.js"></script>
+  <script src="panels/timing.js"></script>
+  <script src="panels/floorplan.js"></script>
+  <script src="panels/program.js"></script>
+  <script src="panels/simulation.js"></script>
+  <script src="panels/formal.js"></script>
+  <script src="panels/surfer.js"></script>
+  <script src="panels/mcy.js"></script>
+  <script src="panels/verilator.js"></script>
+  <script src="panels/report.js"></script>
+  <script src="panels/build-all.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>

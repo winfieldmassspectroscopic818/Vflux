@@ -1,0 +1,38 @@
+# Colorlight i5 25F Board Hardware Package
+
+board:
+  name: "Colorlight i5 25F"
+  vendor: "Colorlight"
+  description: "常见 ECP5 LFE5U-25F/CABGA256 LED 控制卡模板。引脚资源需按具体硬件版本和约束文件确认。"
+  url: ""
+
+fpga:
+  family: "ecp5"
+  device: "25k"
+  package: "CABGA256"
+  speed: "6"
+
+resources:
+  clock: []
+  leds: []
+  buttons: []
+
+constraints:
+  lpf_file: ""
+
+toolchain:
+  synth:
+    tool: "yosys"
+    arch: "ecp5"
+    synth_options: ["-top", "${top_module}"]
+    extra_options: []
+  place_and_route:
+    tool: "nextpnr-ecp5"
+    arch_options: ["--${device}", "--package", "${package}", "--speed", "${speed}"]
+    extra_options: []
+  pack:
+    tool: "ecppack"
+  program:
+    tool: "openFPGALoader"
+    interface: "ftdi"
+    extra_options: []

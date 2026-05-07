@@ -1,0 +1,41 @@
+# Custom Gowin Board Template
+
+board:
+  name: "Custom Gowin"
+  vendor: "Custom"
+  description: "通用 Gowin 模板。默认按 GW1NR-9/QFN88，可在工程文件中调整器件、封装和 CST。"
+  url: ""
+
+fpga:
+  family: "gowin"
+  device: "GW1NR-9"
+  package: "QFN88"
+  speed: ""
+
+resources:
+  clock: []
+  leds: []
+  buttons: []
+
+constraints:
+  cst_file: ""
+
+toolchain:
+  synth:
+    tool: "yosys"
+    arch: "gowin"
+    synth_options: ["-top", "${top_module}"]
+    extra_options: []
+
+  place_and_route:
+    tool: "nextpnr-himbaechel"
+    arch_options: ["--device", "${device}", "--package", "${package}"]
+    extra_options: []
+
+  pack:
+    tool: "gowin_pack"
+
+  program:
+    tool: "openFPGALoader"
+    interface: "usb"
+    extra_options: []

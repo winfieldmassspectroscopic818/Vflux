@@ -1,0 +1,6 @@
+// Tang Nano 9K basic CST from Vflux board package.
+IO_LOC "clk" 52;
+IO_PORT "clk" IO_TYPE=LVCMOS33;
+
+IO_LOC "led" 10;
+IO_PORT "led" IO_TYPE=LVCMOS33;

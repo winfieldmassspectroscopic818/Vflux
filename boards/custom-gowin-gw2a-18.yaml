@@ -1,0 +1,38 @@
+# Custom Gowin GW2A/GW2AR-18 Board Template
+
+board:
+  name: "Custom Gowin GW2A-18"
+  vendor: "Custom"
+  description: "通用 Gowin GW2A/GW2AR-18 模板。需要手动提供 CST 约束和具体烧录参数。"
+  url: ""
+
+fpga:
+  family: "gowin"
+  device: "GW2AR-18"
+  package: "QFN88"
+  speed: ""
+
+resources:
+  clock: []
+  leds: []
+  buttons: []
+
+constraints:
+  cst_file: ""
+
+toolchain:
+  synth:
+    tool: "yosys"
+    arch: "gowin"
+    synth_options: ["-top", "${top_module}"]
+    extra_options: []
+  place_and_route:
+    tool: "nextpnr-himbaechel"
+    arch_options: ["--device", "${device}", "--package", "${package}"]
+    extra_options: []
+  pack:
+    tool: "gowin_pack"
+  program:
+    tool: "openFPGALoader"
+    interface: "ftdi"
+    extra_options: []

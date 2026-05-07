@@ -1,0 +1,7 @@
+title: "iCESugar-pro LED Blinky"
+project_name: "icesugar_pro_blinky"
+family: "ecp5"
+board: "iCESugar-pro"
+top_module: "top"
+description: "面向 iCESugar-pro/ECP5 的点灯构建例程，用于验证 ECP5 综合、布局布线和 ecppack 流程。"
+flow: ["检查", "综合", "布局布线", "比特流"]

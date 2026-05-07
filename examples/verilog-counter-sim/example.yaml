@@ -1,0 +1,8 @@
+title: "Verilog Counter Simulation"
+project_name: "verilog_counter_sim"
+family: "simulation"
+board: "无板卡"
+top_module: "counter"
+testbench: "tb/tb_counter.v"
+description: "纯 Verilog 计数器仿真例程，用于快速测试 Icarus Verilog、VCD 波形和仿真工作台。"
+flow: ["检查", "仿真", "波形"]

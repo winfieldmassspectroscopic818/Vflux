@@ -1,0 +1,23 @@
+node_modules/
+dist/
+out/
+output/
+*.log
+*.tmp
+.env
+.env.*
+
+# Local generated projects and reports
+*.vflux.local.yaml
+vflux-acceptance.json
+toolchain-acceptance.json
+program-diagnostic.json
+
+# OS/editor noise
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+
+# User-provided raw icon source kept out of releases
+tabler_letter-v (1).png

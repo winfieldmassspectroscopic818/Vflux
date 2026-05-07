@@ -1,0 +1,44 @@
+project:
+  name: icesugar_blinky
+  directory: ""
+  top_module: top
+  language: verilog
+  sources:
+    - src/top.v
+  constraints:
+    - constraints/top.pcf
+  program_target_dir: ""
+board:
+  filename: icesugar.yaml
+  name: iCESugar
+  fpga_family: ice40
+  fpga_device: up5k
+  fpga_package: sg48
+  fpga_speed: ""
+  program_tool: icesprog
+  program_interface: ftdi
+toolchain:
+  oss_cad_path: ""
+  extra_args: ""
+flow:
+  synthesis:
+    proc: true
+    opt: true
+    fsm: true
+    memory: true
+    splitnets: false
+    abc: true
+    flatten: false
+  pnr:
+    timing: true
+    report: true
+    svg: true
+    seed: 1
+    frequency: 12
+  pack:
+    metadata: true
+    verify_unpack: true
+    html: true
+  program:
+    method: board
+    skip_detect: false

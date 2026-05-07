@@ -1,0 +1,6 @@
+# iCESugar-pro basic LPF from Vflux board package.
+LOCATE COMP "clk" SITE "P3";
+IOBUF PORT "clk" IO_TYPE=LVCMOS33;
+
+LOCATE COMP "led" SITE "M3";
+IOBUF PORT "led" IO_TYPE=LVCMOS33;

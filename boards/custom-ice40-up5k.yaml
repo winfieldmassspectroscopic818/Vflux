@@ -1,0 +1,41 @@
+# Custom iCE40 UP5K Board Template
+
+board:
+  name: "Custom iCE40 UP5K"
+  vendor: "Custom"
+  description: "通用 iCE40UP5K 模板。适合暂未收录的 UP5K 板卡，需手动提供 PCF 约束和烧录方式。"
+  url: ""
+
+fpga:
+  family: "ice40"
+  device: "up5k"
+  package: "sg48"
+  speed: ""
+
+resources:
+  clock: []
+  leds: []
+  buttons: []
+
+constraints:
+  pcf_file: ""
+
+toolchain:
+  synth:
+    tool: "yosys"
+    arch: "ice40"
+    synth_options: ["-top", "${top_module}"]
+    extra_options: []
+
+  place_and_route:
+    tool: "nextpnr-ice40"
+    arch_options: ["--${device}", "--package", "${package}"]
+    extra_options: []
+
+  pack:
+    tool: "icepack"
+
+  program:
+    tool: "openFPGALoader"
+    interface: "usb"
+    extra_options: []

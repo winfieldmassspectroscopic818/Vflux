@@ -1,0 +1,7 @@
+title: "Tang Nano 9K LED Blinky"
+project_name: "tang_nano_9k_blinky"
+family: "gowin"
+board: "Tang Nano 9K"
+top_module: "top"
+description: "面向 Tang Nano 9K/Gowin 的点灯构建例程，用于验证 Gowin 综合、Himbaechel P&R 和 gowin_pack 流程。"
+flow: ["检查", "综合", "布局布线", "比特流"]
