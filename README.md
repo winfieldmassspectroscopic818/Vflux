@@ -1,7 +1,7 @@
 # Vflux
 
 Vflux is a small graphical FPGA development tool designed to work with [OSS CAD Suite](https://github.com/YosysHQ/oss-cad-suite-build). It does not reimplement Yosys, nextpnr, icepack, ecppack, openFPGALoader, or other low-level tools. Instead, it organizes the command-line FPGA workflow into a clear visual pipeline.
-
+[简体中文README](README.cn.md)
 The current release target is **Vflux 0.9 Windows preview**. It focuses on the iCE40/iCESugar learning workflow, while also providing ECP5 and Gowin project configuration paths.
 
 ## Before You Start
