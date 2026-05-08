@@ -1,16 +1,18 @@
 {
   "name": "vflux",
-  "version": "0.9.0",
+  "version": "1.0.0",
   "author": "Vflux contributors",
-  "description": "Vflux - 面向 FPGA 学习与开发的图形化工具，配合 OSS CAD Suite 使用",
+  "description": "Vflux - a graphical FPGA workflow tool for OSS CAD Suite",
   "main": "src/main.js",
   "scripts": {
     "start": "electron .",
     "validate:examples": "node scripts/validate-examples.js",
     "release:check": "npm run validate:examples",
-    "pack:win": "npm run release:check && electron-builder --win portable --config.win.signAndEditExecutable=false",
-    "pack:win:zip": "npm run release:check && electron-builder --win zip --config.win.signAndEditExecutable=false",
-    "pack:linux": "npm run release:check && electron-builder --linux AppImage",
+    "pack:win": "npm run release:check && electron-builder --win portable --config.win.signAndEditExecutable=false --config.artifactName=Vflux-Windows-${version}.${ext}",
+    "pack:win:1.0.0": "npm run pack:win",
+    "pack:win:zip": "npm run release:check && electron-builder --win zip --config.win.signAndEditExecutable=false --config.artifactName=Vflux-Windows-${version}.${ext}",
+    "pack:linux": "npm run release:check && electron-builder --linux AppImage --config.extraMetadata.version=0.9.1 --config.artifactName=Vflux-Linux-0.9.1.${ext}",
+    "pack:linux:0.9.1": "npm run pack:linux",
     "build": "npm run pack:win"
   },
   "build": {

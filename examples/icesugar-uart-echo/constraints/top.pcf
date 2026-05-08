@@ -1,0 +1,7 @@
+# iCESugar UP5K UART echo example
+set_io clk 35
+set_io uart_tx 6
+set_io uart_rx 5
+set_io led1 41
+set_io led2 40
+set_io led3 39

@@ -1,12 +1,12 @@
 schema_version: 1
 app_version: 1.0.0-preview
 project:
-  name: verilog_counter_sim
+  name: verilog_fsm_sim
   directory: ""
-  top_module: counter
+  top_module: traffic_fsm
   language: verilog
   sources:
-    - src/counter.v
+    - src/traffic_fsm.v
   constraints: []
   program_target_dir: ""
 board:
@@ -26,4 +26,4 @@ flow:
     wave: true
     warnings: true
     output: output/simulation/sim.vvp
-    testbench: tb/tb_counter.v
+    testbench: tb/tb_traffic_fsm.v

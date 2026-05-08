@@ -16,6 +16,7 @@
         <button id="btn-open-project">打开工程</button>
         <button id="btn-save-project">保存工程</button>
         <button id="btn-open-project-dir">打开工程目录</button>
+        <button id="btn-menu-health-check">工程体检</button>
         <button id="btn-menu-project-page">工程管理页</button>
       </div></div>
       <div class="menu-group"><button class="menu-trigger">视图</button><div class="menu-dropdown">
@@ -105,7 +106,8 @@
           <div class="form-group"><label>源文件 <span class="count-badge" id="source-count">0个文件</span></label>
             <div class="file-manager"><div class="file-list-header"><span>文件路径</span><span>操作</span></div><ul id="source-file-list" class="managed-file-list"></ul><button id="btn-add-source" class="btn-small">+ 添加文件</button></div></div>
           <div class="form-group"><label>约束文件 (PCF)</label><div class="input-with-btn"><input type="text" id="cfg-constraints" placeholder="constraints/top.pcf" /><button id="btn-add-constraint" class="btn-small">浏览...</button><button id="btn-gen-pcf" class="btn-small">&#x2728; 自动生成</button></div></div>
-          <div class="btn-row"><button id="btn-apply-project" class="btn-primary">应用配置</button><button id="btn-save-project-file" class="btn-secondary">保存工程文件</button></div>
+          <div class="btn-row"><button id="btn-apply-project" class="btn-primary">应用配置</button><button id="btn-save-project-file" class="btn-secondary">保存工程文件</button><button id="btn-health-check" class="btn-secondary">工程体检</button></div>
+          <div class="health-panel" id="project-health-panel" style="display:none;"><div class="result-card ready" id="health-result"><div><span class="result-kicker">工程健康</span><h3 id="health-summary">等待运行工程体检</h3></div><span class="result-dot"></span></div><ul class="feedback-list" id="health-feedback-list"></ul></div>
         </div>
       </div>
 
@@ -420,9 +422,9 @@
       <div class="panel" id="panel-report"><div class="panel-header"><h2>报告中心</h2></div><div class="panel-body workflow-panel">
         <div class="result-card ready" id="report-result"><div><span class="result-kicker">构建报告</span><h3 id="report-summary">等待刷新报告</h3></div><span class="result-dot"></span></div>
         <div class="report-status-row" id="report-status-summary"></div>
-        <div class="report-grid" id="report-grid"><div class="report-card"><h3>验收结论</h3><div id="report-acceptance"></div></div><div class="report-card"><h3>资源与器件</h3><div id="report-resource"></div></div><div class="report-card"><h3>时序与产物</h3><div id="report-timing"></div></div><div class="report-card"><h3>引脚与约束</h3><div id="report-pins"></div></div><div class="report-card report-card-wide"><h3>构建产物</h3><div id="report-artifacts"></div></div><div class="report-card"><h3>图形预览</h3><div id="report-visual-preview"></div></div><div class="report-card"><h3>构建时间线</h3><div id="report-timeline"></div></div></div>
+        <div class="report-grid" id="report-grid"><div class="report-card report-card-wide"><h3>发布前检查</h3><div id="report-release-readiness"></div></div><div class="report-card"><h3>验收结论</h3><div id="report-acceptance"></div></div><div class="report-card"><h3>资源与器件</h3><div id="report-resource"></div></div><div class="report-card"><h3>时序与产物</h3><div id="report-timing"></div></div><div class="report-card"><h3>引脚与约束</h3><div id="report-pins"></div></div><div class="report-card report-card-wide"><h3>构建产物</h3><div id="report-artifacts"></div></div><div class="report-card"><h3>图形预览</h3><div id="report-visual-preview"></div></div><div class="report-card"><h3>构建时间线</h3><div id="report-timeline"></div></div></div>
         <ul class="feedback-list" id="report-feedback-list"></ul>
-        <div class="btn-row"><button id="btn-report-refresh" class="btn-primary">刷新报告</button><button id="btn-report-export-html" class="btn-secondary">导出 HTML 报告</button><button id="btn-report-open-dir" class="btn-secondary">打开工程目录</button></div>
+        <div class="btn-row"><button id="btn-report-refresh" class="btn-primary">刷新报告</button><button id="btn-report-preflight" class="btn-secondary">1.0 发布前自动验收</button><button id="btn-report-export-html" class="btn-secondary">导出 HTML 报告</button><button id="btn-report-export-diagnostic" class="btn-secondary">导出诊断包</button><button id="btn-report-open-dir" class="btn-secondary">打开工程目录</button></div>
       </div></div>
 
       <!-- BUILD ALL -->
@@ -457,6 +459,27 @@
     </div>
   </div>
 
+  <div id="onboarding-modal" class="modal-overlay" style="display:none;">
+    <div class="modal-box onboarding-box">
+      <div class="modal-header"><h2>Vflux 1.0 启动向导</h2><button class="modal-close" id="onboarding-close">&times;</button></div>
+      <div class="modal-body">
+        <p class="muted-text">按这几步完成首次配置。OSS CAD Suite 不随 Vflux 打包，需要先单独安装。</p>
+        <div class="onboarding-steps">
+          <div class="onboarding-step"><span>1</span><strong>选择界面</strong><p>设置语言与主题，后续可在“视图”菜单中修改。</p></div>
+          <div class="onboarding-step"><span>2</span><strong>配置工具链</strong><p>选择 OSS CAD Suite 根目录，并运行环境验收。</p></div>
+          <div class="onboarding-step"><span>3</span><strong>创建工程</strong><p>新建工程、打开工程，或从例程开始一键验收。</p></div>
+        </div>
+        <div class="onboarding-actions">
+          <button id="onboarding-open-toolchain" class="btn-primary">配置 OSS CAD Suite</button>
+          <button id="onboarding-open-examples" class="btn-secondary">运行内置例程</button>
+          <button id="onboarding-new-project" class="btn-secondary">新建工程</button>
+        </div>
+        <label class="checkbox-label onboarding-check"><input type="checkbox" id="onboarding-dont-show" checked /><span>下次不再显示</span></label>
+      </div>
+      <div class="modal-footer"><button id="onboarding-skip" class="btn-secondary">稍后再说</button><button id="onboarding-done" class="btn-primary">完成</button></div>
+    </div>
+  </div>
+
   <!-- NEW PROJECT MODAL -->
   <div id="new-project-modal" class="modal-overlay" style="display:none;">
     <div class="modal-box"><div class="modal-header"><h2>新建 FPGA 工程</h2><button class="modal-close" id="modal-close">&times;</button></div>
@@ -479,6 +502,7 @@
   <script src="diagnostics.js"></script>
   <script src="tool-step-ui.js"></script>
   <script src="i18n.js"></script>
+  <script src="onboarding.js"></script>
   <script src="option-help.js"></script>
   <script src="panels/dashboard.js"></script>
   <script src="panels/new-project-modal.js"></script>

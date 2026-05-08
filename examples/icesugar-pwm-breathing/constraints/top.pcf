@@ -1,0 +1,5 @@
+# iCESugar UP5K PWM breathing LED example
+set_io clk 35
+set_io led1 41
+set_io led2 40
+set_io led3 39

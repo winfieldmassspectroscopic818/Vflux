@@ -53,6 +53,11 @@ const PanelToolchain = {
     return tools[family] || "openFPGALoader";
   },
 
+  _cmd(name) {
+    if (window.vflux?.platform !== "win32" && /\.exe$/i.test(name)) return name.replace(/\.exe$/i, "");
+    return name;
+  },
+
   async _browseOss() {
     const result = await window.vflux.openDirectoryDialog({ title: "选择 OSS CAD Suite 目录" });
     if (result?.filePaths?.[0]) {
@@ -132,22 +137,23 @@ const PanelToolchain = {
   _toolSpecs() {
     const board = Config.data.board;
     const family = board.fpga_family || "ice40";
+    const cmd = (name) => this._cmd(name);
     const specs = [
-      { command: "yosys.exe", role: "综合", required: true, versionArgs: ["--version"] },
-      { command: `nextpnr-${family}.exe`, aliases: family === "gowin" ? ["nextpnr-himbaechel.exe"] : [], role: "布局布线", required: true, versionArgs: ["--version"], featureArgs: ["--help"], features: this._nextpnrFeatures(family) },
-      { command: `${this._pack(family)}.exe`, role: "生成比特流", required: true, versionArgs: ["--version"], featureArgs: ["--help"], features: this._packFeatures(family) },
-      { command: `${this._prog(family)}.exe`, role: "烧录", required: true, versionArgs: ["--version"] },
-      { command: "lsftdi.exe", role: "FTDI 检测", required: family === "ice40", versionArgs: ["--help"] },
-      { command: "openFPGALoader.exe", role: "通用烧录/检测", required: family !== "ice40", versionArgs: ["--version"] },
-      { command: "iverilog.exe", role: "仿真编译", required: false, versionArgs: ["-V"] },
-      { command: "vvp.exe", role: "仿真运行", required: false, versionArgs: ["-V"] },
-      { command: "gtkwave.exe", role: "GTKWave 波形", required: false, versionArgs: ["--version"] },
-      { command: "surfer.exe", role: "Surfer 波形", required: false, versionArgs: ["--version"] },
-      { command: "sby.exe", role: "形式验证", required: false, versionArgs: ["--version"] },
-      { command: "verilator.exe", aliases: ["verilator_bin.exe", "verilator"], role: "高级仿真/Lint", required: false, versionArgs: ["--version"] },
-      { command: "mcy.exe", role: "突变覆盖", required: false, versionArgs: ["--version"] },
-      { command: "icebox_html.exe", role: "内部布线 HTML", required: false, versionArgs: ["-h"] },
-      { command: "icebox_vlog.exe", role: "反解门级网表", required: false, versionArgs: ["-h"] },
+      { command: cmd("yosys.exe"), role: "综合", required: true, versionArgs: ["--version"] },
+      { command: cmd(`nextpnr-${family}.exe`), aliases: family === "gowin" ? [cmd("nextpnr-himbaechel.exe")] : [], role: "布局布线", required: true, versionArgs: ["--version"], featureArgs: ["--help"], features: this._nextpnrFeatures(family) },
+      { command: cmd(`${this._pack(family)}.exe`), role: "生成比特流", required: true, versionArgs: ["--version"], featureArgs: ["--help"], features: this._packFeatures(family) },
+      { command: cmd(`${this._prog(family)}.exe`), role: "烧录", required: true, versionArgs: ["--version"] },
+      { command: cmd("lsftdi.exe"), role: "FTDI 检测", required: family === "ice40", versionArgs: ["--help"] },
+      { command: cmd("openFPGALoader.exe"), role: "通用烧录/检测", required: family !== "ice40", versionArgs: ["--version"] },
+      { command: cmd("iverilog.exe"), role: "仿真编译", required: false, versionArgs: ["-V"] },
+      { command: cmd("vvp.exe"), role: "仿真运行", required: false, versionArgs: ["-V"] },
+      { command: cmd("gtkwave.exe"), role: "GTKWave 波形", required: false, versionArgs: ["--version"] },
+      { command: cmd("surfer.exe"), role: "Surfer 波形", required: false, versionArgs: ["--version"] },
+      { command: cmd("sby.exe"), role: "形式验证", required: false, versionArgs: ["--version"] },
+      { command: cmd("verilator.exe"), aliases: [cmd("verilator_bin.exe"), "verilator"], role: "高级仿真/Lint", required: false, versionArgs: ["--version"] },
+      { command: cmd("mcy.exe"), role: "突变覆盖", required: false, versionArgs: ["--version"] },
+      { command: cmd("icebox_html.exe"), role: "内部布线 HTML", required: false, versionArgs: ["-h"] },
+      { command: cmd("icebox_vlog.exe"), role: "反解门级网表", required: false, versionArgs: ["-h"] },
     ];
     return specs.filter((tool, index, array) => array.findIndex((t) => t.command === tool.command) === index);
   },
@@ -262,15 +268,16 @@ const PanelToolchain = {
     const family = Config.data.board.fpga_family || "ice40";
     const byCommand = new Map((tools || []).map((tool) => [tool.command, tool]));
     const find = (...commands) => commands.map((cmd) => byCommand.get(cmd)).find(Boolean);
+    const cmd = (name) => this._cmd(name);
     const groups = [
-      { key: "synthesis", title: "综合", required: true, tools: [find("yosys.exe")] },
-      { key: "pnr", title: "布局布线", required: true, tools: [find(`nextpnr-${family}.exe`)] },
-      { key: "pack", title: "比特流生成", required: true, tools: [find(`${this._pack(family)}.exe`)] },
-      { key: "program", title: "烧录/下载", required: true, tools: [find(`${this._prog(family)}.exe`), find("openFPGALoader.exe"), find("lsftdi.exe")].filter(Boolean) },
-      { key: "simulation", title: "仿真", required: false, tools: [find("iverilog.exe"), find("vvp.exe")] },
-      { key: "wave", title: "波形查看", required: false, tools: [find("surfer.exe"), find("gtkwave.exe")] },
-      { key: "debug", title: "验证与调试", required: false, tools: [find("sby.exe"), find("verilator.exe"), find("mcy.exe")] },
-      { key: "visual", title: "图形化产物", required: false, tools: [find("icebox_html.exe"), find("icebox_vlog.exe")] },
+      { key: "synthesis", title: "综合", required: true, tools: [find(cmd("yosys.exe"))] },
+      { key: "pnr", title: "布局布线", required: true, tools: [find(cmd(`nextpnr-${family}.exe`))] },
+      { key: "pack", title: "比特流生成", required: true, tools: [find(cmd(`${this._pack(family)}.exe`))] },
+      { key: "program", title: "烧录/下载", required: true, tools: [find(cmd(`${this._prog(family)}.exe`)), find(cmd("openFPGALoader.exe")), find(cmd("lsftdi.exe"))].filter(Boolean) },
+      { key: "simulation", title: "仿真", required: false, tools: [find(cmd("iverilog.exe")), find(cmd("vvp.exe"))] },
+      { key: "wave", title: "波形查看", required: false, tools: [find(cmd("surfer.exe")), find(cmd("gtkwave.exe"))] },
+      { key: "debug", title: "验证与调试", required: false, tools: [find(cmd("sby.exe")), find(cmd("verilator.exe")), find(cmd("mcy.exe"))] },
+      { key: "visual", title: "图形化产物", required: false, tools: [find(cmd("icebox_html.exe")), find(cmd("icebox_vlog.exe"))] },
     ];
     const results = groups.map((group) => {
       const present = group.tools.filter(Boolean);
@@ -292,7 +299,7 @@ const PanelToolchain = {
     const feedback = [];
     if (!failedRequired.length) feedback.push({ state: "success", text: "核心构建工具可用：综合、布局布线、比特流生成具备运行条件。" });
     for (const group of failedRequired) feedback.push({ state: "failed", text: `${group.title}不可用：${group.missing.join("；") || "缺少必要工具"}` });
-    if (family === "ice40" && !find("lsftdi.exe")?.ok) feedback.push({ state: "pending", text: "iCE40/FTDI 检测工具不可用时，烧录连接诊断会受限。" });
+    if (family === "ice40" && !find(cmd("lsftdi.exe"))?.ok) feedback.push({ state: "pending", text: "iCE40/FTDI 检测工具不可用时，烧录连接诊断会受限。" });
     if (!results.find((g) => g.key === "wave")?.ok) feedback.push({ state: "pending", text: "未找到可用波形查看器，仿真仍可运行，但无法直接打开波形。" });
     if (optionalMissing) feedback.push({ state: "pending", text: `${optionalMissing} 个可选能力暂不可用，不影响核心构建。` });
     return {

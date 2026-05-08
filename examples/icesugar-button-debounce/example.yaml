@@ -1,0 +1,7 @@
+title: "iCESugar Button Debounce"
+project_name: "icesugar_button_debounce"
+family: "ice40"
+board: "iCESugar"
+top_module: "top"
+description: "按键消抖控制 LED 例程，包含同步、稳定计数和边沿检测，适合作为输入外设模板。"
+flow: ["检查", "综合", "布局布线", "比特流", "拖拽烧录"]

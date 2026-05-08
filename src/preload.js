@@ -3,6 +3,7 @@
 const { contextBridge, ipcRenderer } = require("electron");
 
 contextBridge.exposeInMainWorld("vflux", {
+  platform: process.platform,
   // -- 工具链 --
   toolRun: (id, command, args, cwd) =>
     ipcRenderer.invoke("tool:run", { id, command, args, cwd }),
@@ -49,6 +50,8 @@ contextBridge.exposeInMainWorld("vflux", {
   scanSources: (dirpath) => ipcRenderer.invoke("project:scanSources", dirpath),
   scanConstraints: (dirpath) => ipcRenderer.invoke("project:scanConstraints", dirpath),
   detectTopModule: (filepaths) => ipcRenderer.invoke("project:detectTopModule", filepaths),
+  healthCheckProject: (project) => ipcRenderer.invoke("project:healthCheck", project || {}),
+  exportDiagnosticPackage: (payload) => ipcRenderer.invoke("project:exportDiagnosticPackage", payload || {}),
   createProjectDir: (dirpath) => ipcRenderer.invoke("project:createDir", dirpath),
   generatePcf: (boardYaml, topModule) =>
     ipcRenderer.invoke("project:generatePcf", { boardYaml, topModule }),

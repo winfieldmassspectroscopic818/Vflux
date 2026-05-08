@@ -35,6 +35,7 @@ const App = {
     Pipeline.init();
     NewProjectModal.init();
     I18n.init();
+    Onboarding.init();
     OptionHelp.init();
     Object.values(this.panels).forEach((panel) => {
       if (panel.init) panel.init();
@@ -47,6 +48,10 @@ const App = {
     document.getElementById("btn-open-project").addEventListener("click", () => this.openProject());
     document.getElementById("btn-save-project").addEventListener("click", () => this.saveProject());
     document.getElementById("btn-open-project-dir").addEventListener("click", () => this.openProjectDir());
+    document.getElementById("btn-menu-health-check")?.addEventListener("click", () => {
+      this.switchPanel("project");
+      PanelProject.runHealthCheck();
+    });
     document.getElementById("btn-menu-project-page").addEventListener("click", () => this.switchPanel("project"));
     document.getElementById("btn-open-report-page").addEventListener("click", () => this.switchPanel("report"));
     document.getElementById("btn-menu-build").addEventListener("click", () => this.switchPanel("build-all"));
@@ -79,6 +84,7 @@ const App = {
     this._bindToolchainApply();
     this.switchPanel("dashboard");
     this.setStatus("就绪");
+    Onboarding.showIfNeeded();
   },
 
   _bindToolchainApply() {

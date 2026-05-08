@@ -5,8 +5,12 @@
 "use strict";
 
 const Config = {
+  SCHEMA_VERSION: 1,
+
   /** 当前工程配置数据 */
   data: {
+    schema_version: 1,
+    app_version: "1.0.0-preview",
     project: {
       name: "",
       directory: "",
@@ -131,6 +135,8 @@ const Config = {
 
   /** 创建新工程 */
   create(name, directory, topModule, language) {
+    this.data.schema_version = this.SCHEMA_VERSION;
+    this.data.app_version = "1.0.0-preview";
     this.data.project.name = name;
     this.data.project.directory = directory;
     this.data.project.top_module = topModule || "top";
@@ -150,6 +156,8 @@ const Config = {
   async load(filepath) {
     const raw = await window.vflux.readYaml(filepath);
     const savedOssPath = this.getGlobalOssCadPath();
+    this.data.schema_version = raw.schema_version || this.SCHEMA_VERSION;
+    this.data.app_version = raw.app_version || "1.0.0-preview";
     this.data.project = {
       name: raw.project?.name || "",
       directory: raw.project?.directory || "",
@@ -183,6 +191,9 @@ const Config = {
   async save(filepath) {
     const target = filepath || this._filepath;
     if (!target) throw new Error("no filepath specified");
+    // 1.0 起工程文件带 schema，后续字段迁移可以有稳定入口。
+    this.data.schema_version = this.SCHEMA_VERSION;
+    this.data.app_version = "1.0.0-preview";
     await window.vflux.writeYaml(target, this.data);
     this._filepath = target;
     this._dirty = false;

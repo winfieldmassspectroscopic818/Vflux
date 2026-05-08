@@ -3,7 +3,9 @@
 const PanelReport = {
   init() {
     document.getElementById("btn-report-refresh").addEventListener("click", () => this.refresh());
+    document.getElementById("btn-report-preflight")?.addEventListener("click", () => this.runReleasePreflight());
     document.getElementById("btn-report-export-html").addEventListener("click", () => this.exportHtml());
+    document.getElementById("btn-report-export-diagnostic")?.addEventListener("click", () => this.exportDiagnosticPackage());
     document.getElementById("btn-report-open-dir").addEventListener("click", () => this._openDir());
     document.getElementById("report-artifacts").addEventListener("click", (event) => this._openArtifact(event));
     document.getElementById("report-visual-preview").addEventListener("click", (event) => this._openArtifact(event));
@@ -17,6 +19,7 @@ const PanelReport = {
     const artifacts = await this._collectArtifacts(top);
 
     this._renderStatusSummary(status);
+    this._renderReleaseReadiness(artifacts, status);
     this._renderAcceptance(artifacts.acceptance, artifacts.toolchainAcceptance);
     this._renderResource(proj, board, artifacts);
     this._renderTimingAndProducts(proj, board, artifacts);
@@ -50,6 +53,55 @@ const PanelReport = {
     else Pipeline.set("report", "pending");
   },
 
+  async runReleasePreflight() {
+    const button = document.getElementById("btn-report-preflight");
+    if (button) button.disabled = true;
+    const started = new Date().toISOString();
+    ToolStepUI.render("report-result", "report-summary", "report-feedback-list", "running", "正在执行 1.0 发布前自动验收", [
+      { state: "running", text: "将依次运行工程体检、工具链验收、一键构建、HTML 报告导出和发布前检查刷新。" },
+      { state: "pending", text: "如果核心构建失败，会保留失败步骤并停止后续核心流程。" },
+    ]);
+    ToolStepUI.setTechnical("report", { meta: "1.0 release preflight", command: "health-check -> toolchain-probe -> build-all -> export-html -> refresh-report", log: "" });
+
+    const log = [];
+    const step = async (label, fn) => {
+      log.push(`Start: ${label}`);
+      ToolStepUI.setTechnical("report", { meta: `运行中：${label}`, command: "release preflight", log: log.join("\n") });
+      const result = await fn();
+      log.push(`Done: ${label}`);
+      ToolStepUI.setTechnical("report", { meta: `完成：${label}`, command: "release preflight", log: log.join("\n") });
+      return result;
+    };
+
+    try {
+      // Keep this orchestration small: each panel owns its own detailed behavior.
+      await step("工程体检", () => PanelProject.runHealthCheck());
+      await step("工具链验收", () => PanelToolchain.probe());
+      const buildOk = await step("一键构建与验收", () => PanelBuildAll.run({ source: "release-preflight", title: Config.data.project.name || "Vflux Project" }));
+      if (buildOk) await step("导出 HTML 报告", () => this.exportHtml({ open: false, silent: true }));
+      await step("刷新发布前检查", () => this.refresh());
+
+      const artifacts = await this._collectArtifacts(Config.data.project.top_module || "top");
+      const ready = this._releaseReadinessSummary(artifacts, Pipeline.status);
+      const ok = buildOk && ready.bad === 0;
+      ToolStepUI.render("report-result", "report-summary", "report-feedback-list", ok ? "success" : "failed", ok ? "发布前自动验收完成" : "发布前自动验收发现问题", [
+        { state: ok ? "success" : "failed", text: ok ? "核心流程通过，发布前检查无阻塞项。" : `仍有 ${ready.bad} 个阻塞项、${ready.warn} 个注意项。` },
+        { state: buildOk ? "success" : "failed", text: buildOk ? "一键构建通过。" : "一键构建未通过，请查看对应工作台诊断。" },
+        { state: "success", text: `开始时间：${new Date(started).toLocaleString("zh-CN")}` },
+      ]);
+      ToolStepUI.setTechnical("report", { meta: ok ? "preflight passed" : "preflight issues found", command: "release preflight", log: log.join("\n") });
+    } catch (error) {
+      log.push(`Failed: ${error.message}`);
+      ToolStepUI.render("report-result", "report-summary", "report-feedback-list", "failed", "发布前自动验收失败", [
+        { state: "failed", text: error.message },
+        { state: "pending", text: "可展开技术细节查看自动验收停在哪一步。" },
+      ]);
+      ToolStepUI.setTechnical("report", { meta: "preflight failed", command: "release preflight", log: log.join("\n") });
+    } finally {
+      if (button) button.disabled = false;
+    }
+  },
+
   _renderAcceptance(acceptance, toolchainAcceptance) {
     const el = document.getElementById("report-acceptance");
     if (!el) return;
@@ -69,6 +121,55 @@ const PanelReport = {
       this._row("停止位置", acceptance.stopped_at || "无"),
       this._row("工具链环境", toolchainAcceptance ? `${toolchainAcceptance.passed}/${toolchainAcceptance.total} 项通过` : "尚未验收"),
     ].join("");
+  },
+
+  _renderReleaseReadiness(artifacts, status) {
+    const el = document.getElementById("report-release-readiness");
+    if (!el) return;
+    const health = artifacts.projectHealth;
+    const toolchain = artifacts.toolchainAcceptance;
+    const acceptance = artifacts.acceptance;
+    const criticalSteps = ["check", "synthesis", "pnr", "pack"];
+    const criticalOk = criticalSteps.every((step) => status[step] === "success");
+    const programReady = status.program === "success" || Config.data.flow?.program?.method === "mass-storage";
+    const rows = [
+      this._readinessItem("工程配置", health ? (health.ok ? "ok" : "bad") : "warn", health ? (health.ok ? "工程体检通过" : `${health.bad || 0} 个阻塞问题，${health.warn || 0} 个注意项`) : "尚未运行工程体检"),
+      this._readinessItem("工具链环境", toolchain ? (toolchain.failed ? "bad" : "ok") : "warn", toolchain ? `${toolchain.passed}/${toolchain.total} 项通过` : "尚未验收 OSS CAD Suite"),
+      this._readinessItem("核心构建", criticalOk && artifacts.bitstream ? "ok" : "warn", criticalOk && artifacts.bitstream ? "检查、综合、布局布线、比特流均已完成" : "建议运行一键构建或例程验收"),
+      this._readinessItem("报告材料", artifacts.htmlReport && artifacts.acceptance ? "ok" : "warn", artifacts.htmlReport ? "HTML 报告已生成" : "建议导出 HTML 报告"),
+      this._readinessItem("图形产物", artifacts.placedSvg || artifacts.routedSvg || artifacts.floorplanHtml ? "ok" : "warn", artifacts.placedSvg || artifacts.routedSvg || artifacts.floorplanHtml ? "已有可视化产物" : "如需展示布线/资源图，请在对应工作台启用输出"),
+      this._readinessItem("烧录准备", artifacts.bitstream && programReady ? "ok" : artifacts.bitstream ? "warn" : "bad", artifacts.bitstream ? (programReady ? "比特流和烧录方式已就绪" : "比特流存在，烧录方式建议再检查") : "尚未生成比特流"),
+      this._readinessItem("最近验收", acceptance ? (acceptance.success ? "ok" : "bad") : "warn", acceptance ? (acceptance.success ? "最近一次验收通过" : `验收停在 ${acceptance.stopped_at || "未知步骤"}`) : "尚未运行一键验收"),
+    ];
+    const { bad, warn } = this._releaseReadinessSummary(artifacts, status, rows);
+    const headline = bad ? `暂不建议发布：${bad} 个阻塞项` : warn ? `接近可发布：${warn} 个注意项` : "可以作为试用版发布";
+    el.innerHTML = `<div class="release-readiness-head ${bad ? "bad" : warn ? "warn" : "ok"}">${ToolStepUI.escape(headline)}</div><div class="release-readiness-list">${rows.map((item) => `
+      <div class="release-readiness-item ${item.state}">
+        <span></span>
+        <div><strong>${ToolStepUI.escape(item.title)}</strong><p>${ToolStepUI.escape(item.detail)}</p></div>
+      </div>`).join("")}</div>`;
+  },
+
+  _readinessItem(title, state, detail) {
+    return { title, state, detail };
+  },
+
+  _releaseReadinessSummary(artifacts, status, existingRows = null) {
+    // Shared summary for both the visible readiness card and the automated preflight result.
+    const rows = existingRows || [
+      this._readinessItem("工程配置", artifacts.projectHealth ? (artifacts.projectHealth.ok ? "ok" : "bad") : "warn", ""),
+      this._readinessItem("工具链环境", artifacts.toolchainAcceptance ? (artifacts.toolchainAcceptance.failed ? "bad" : "ok") : "warn", ""),
+      this._readinessItem("核心构建", ["check", "synthesis", "pnr", "pack"].every((step) => status[step] === "success") && artifacts.bitstream ? "ok" : "warn", ""),
+      this._readinessItem("报告材料", artifacts.htmlReport && artifacts.acceptance ? "ok" : "warn", ""),
+      this._readinessItem("图形产物", artifacts.placedSvg || artifacts.routedSvg || artifacts.floorplanHtml ? "ok" : "warn", ""),
+      this._readinessItem("烧录准备", artifacts.bitstream ? "warn" : "bad", ""),
+      this._readinessItem("最近验收", artifacts.acceptance ? (artifacts.acceptance.success ? "ok" : "bad") : "warn", ""),
+    ];
+    return {
+      bad: rows.filter((item) => item.state === "bad").length,
+      warn: rows.filter((item) => item.state === "warn").length,
+      ok: rows.filter((item) => item.state === "ok").length,
+    };
   },
 
   _renderResource(proj, board, artifacts) {
@@ -171,6 +272,27 @@ const PanelReport = {
     if (open) await window.vflux.shellOpenPath(target);
   },
 
+  async exportDiagnosticPackage() {
+    const result = await window.vflux.exportDiagnosticPackage({
+      schema_version: Config.data.schema_version || 1,
+      project: Config.data.project,
+      board: Config.data.board,
+      toolchain: Config.data.toolchain,
+      pipeline: { status: Pipeline.status, results: Pipeline.results, timestamps: Pipeline.timestamps },
+    });
+    if (!result.success) {
+      ToolStepUI.render("report-result", "report-summary", "report-feedback-list", "failed", "诊断包导出失败", [
+        { state: "failed", text: result.reason || "无法创建诊断包目录" },
+      ]);
+      return;
+    }
+    ToolStepUI.render("report-result", "report-summary", "report-feedback-list", "success", "诊断包已导出", [
+      { state: "success", text: `已生成：${result.dir}` },
+      { state: "pending", text: "诊断包包含工程配置、报告 JSON、日志、HTML 报告和产物摘要，不会主动复制完整 RTL 源码。" },
+    ]);
+    await window.vflux.shellOpenDir(result.dir);
+  },
+
   _renderTimeline(status, acceptance) {
     const el = document.getElementById("report-timeline");
     if (!el) return;
@@ -207,6 +329,7 @@ const PanelReport = {
       reportFiles: [],
       acceptance: null,
       toolchainAcceptance: null,
+      projectHealth: null,
     };
     try {
       artifacts.reportFiles = await window.vflux.listDir(ToolStepUI.projectPath("output/reports"));
@@ -231,6 +354,10 @@ const PanelReport = {
     try {
       const raw = await window.vflux.readText(ToolStepUI.projectPath("output/reports/toolchain-acceptance.json"));
       artifacts.toolchainAcceptance = JSON.parse(raw);
+    } catch (_) {}
+    try {
+      const raw = await window.vflux.readText(ToolStepUI.projectPath("output/reports/project-health.json"));
+      artifacts.projectHealth = JSON.parse(raw);
     } catch (_) {}
     try {
       artifacts.metadata = !!(await window.vflux.readText(ToolStepUI.projectPath(`output/bitstream/${top}.metadata.json`)));

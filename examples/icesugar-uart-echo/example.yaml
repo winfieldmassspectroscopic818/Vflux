@@ -1,0 +1,7 @@
+title: "iCESugar UART Echo"
+project_name: "icesugar_uart_echo"
+family: "ice40"
+board: "iCESugar"
+top_module: "top"
+description: "UART echo 工程模板，接收一个字节后原样发送回去，用于验证串口引脚、分频参数和多模块工程组织。"
+flow: ["检查", "综合", "布局布线", "比特流", "拖拽烧录"]

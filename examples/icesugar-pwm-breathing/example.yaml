@@ -1,0 +1,7 @@
+title: "iCESugar PWM Breathing LED"
+project_name: "icesugar_pwm_breathing"
+family: "ice40"
+board: "iCESugar"
+top_module: "top"
+description: "iCE40 PWM 呼吸灯例程，用计数器产生占空比渐变，适合验证时钟、PWM、寄存器和比特流生成流程。"
+flow: ["检查", "综合", "布局布线", "比特流", "拖拽烧录"]

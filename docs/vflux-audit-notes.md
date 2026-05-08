@@ -955,3 +955,234 @@
    - `node --check renderer/panels/new-project-modal.js` 通过。
    - `node --check renderer/panels/examples.js` 通过。
    - `npm run release:check` 通过。
+
+## 第二十八轮升级记录：Linux OSS CAD Suite 适配起步
+
+1. OSS CAD Suite 路径识别
+   - 修改：工具链根目录校验不再只认 `environment.bat`。
+   - 新增：支持 Linux 常见的 `environment` 和 `environment.sh`。
+   - 新增：自动搜索会检查 `YOSYSHQ_ROOT`、`OSS_CAD_SUITE`、`~/oss-cad-suite`、`/opt/oss-cad-suite` 等路径。
+   - 理由：Linux 版 OSS CAD Suite 和 Windows 版目录结构相似，但环境入口文件不同。
+2. 工具命令跨平台解析
+   - 修改：主进程运行工具时会同时尝试 `tool.exe` 和 `tool` 两种名称。
+   - 修改：Linux 下 renderer 传入的 `yosys.exe`、`nextpnr-ice40.exe`、`icepack.exe` 等会解析为无扩展名可执行文件。
+   - 修改：工具链验收页在 Linux 下显示无 `.exe` 的工具名。
+   - 理由：上层 GUI 可以继续复用原有流程，底层根据平台自动选择真实可执行文件。
+3. 环境变量
+   - 修改：`PATH` 使用 `path.delimiter` 组装，Windows 为 `;`，Linux 为 `:`。
+   - 修改：`PYTHON_EXECUTABLE` 在 Windows 使用 `python3.exe`，Linux 使用 `python3`。
+   - 保留：`YOSYSHQ_ROOT`、`QT_PLUGIN_PATH`、`OPENFPGALOADER_SOJ_DIR`、`SSL_CERT_FILE` 等 OSS CAD Suite 运行所需变量。
+4. 文档
+   - 新增 `docs/linux-1.0-adaptation.md`。
+   - 记录 Linux OSS CAD Suite 目录要求、运行时变化、AppImage 打包命令和 1.0 Linux 验收清单。
+5. 后续建议
+   - 增加 Linux 烧录权限诊断，尤其是 udev 规则、USB/JTAG 权限、用户组权限。
+   - 在 README 中补充 Linux OSS CAD Suite 安装与 USB 权限说明。
+   - 在 Ubuntu LTS 和至少一个滚动发行版上验证 AppImage。
+
+## 第二十九轮升级记录：1.0 工程稳定性收口
+
+1. 工程 schema
+   - 新增：工程配置根节点加入 `schema_version` 和 `app_version`。
+   - 新增：新建工程、保存工程时会写入 `schema_version: 1`。
+   - 新增：打开旧工程时会自动补默认 schema，保存后即可升级为 1.0 工程格式。
+   - 理由：1.0 以后工程文件需要可迁移、可验证，不能继续依赖隐式字段。
+2. 工程体检
+   - 新增：顶部“工程”菜单加入“工程体检”入口。
+   - 新增：工程页加入“工程体检”按钮和结果面板。
+   - 检查项包括：工程格式、工程名称、工程目录、源文件、约束文件、顶层模块、板卡包、OSS CAD Suite 路径、输出目录可写性。
+   - 体检结果写入 `output/reports/project-health.json`。
+   - 理由：代码检查和工程健康检查是两类问题，1.0 需要把“工程是不是配置完整”单独可视化。
+3. 诊断包导出
+   - 新增：报告中心加入“导出诊断包”按钮。
+   - 导出目录位于 `output/reports/vflux-diagnostic-<timestamp>`。
+   - 包含：工程配置、验收 JSON、工具链验收 JSON、工程体检 JSON、烧录诊断 JSON、HTML 报告、报告目录下的日志和可视化产物摘要。
+   - 策略：默认不主动复制完整 RTL 源码，减少用户反馈问题时泄露设计源码的风险。
+4. iCESugar 烧录体验
+   - 修改：当烧录方式为“板卡默认”且板卡名包含 iCESugar 时，默认使用“拖拽盘符”路径。
+   - 理由：实测 iCESugar 拖拽盘符已经能稳定烧录，1.0 应把可用路径放在最前面，而不是让用户反复面对 FTDI/DFU 检测失败。
+5. 验证
+   - `node --check src/main.js` 通过。
+   - `node --check src/preload.js` 通过。
+   - `node --check renderer/config.js` 通过。
+   - `node --check renderer/app.js` 通过。
+   - `node --check renderer/panels/project.js` 通过。
+   - `node --check renderer/panels/report.js` 通过。
+   - `node --check renderer/panels/program.js` 通过。
+   - `npm run release:check` 通过。
+
+## 第三十轮升级记录：首次启动向导与 1.0 发布清单
+
+1. 首次启动向导
+   - 新增 `renderer/onboarding.js`。
+   - 新增 Vflux 1.0 启动向导弹窗，引导用户完成界面设置、OSS CAD Suite 配置、创建工程或运行例程。
+   - 向导会等待语言选择完成后再显示，避免首次启动多个弹窗叠加。
+   - 支持“下次不再显示”，状态保存到 `localStorage`。
+   - 理由：1.0 面向更广泛用户，必须让第一次打开软件的人知道下一步该做什么。
+2. 错误诊断词典扩充
+   - 扩充重复定义、多重驱动、锁存器推断、include 缺失、重复约束、未知器件/封装、USB 权限、工具链命令缺失、波形文件缺失等规则。
+   - 理由：失败时不能只给英文日志，应尽量把常见失败归类成用户能理解的修复方向。
+3. 1.0 发布文档
+   - 新增 `docs/release-1.0-checklist.md`。
+   - 覆盖干净构建、首次启动、工具链、工程流程、例程、报告、烧录、UI、打包、Release notes。
+   - 新增 `docs/vflux-1.0-roadmap.md`。
+   - 明确 1.0 核心目标、可选目标和不强求范围。
+4. 验证建议
+   - 下一次打包前按 `docs/release-1.0-checklist.md` 逐项人工验收。
+
+## 第三十一轮升级记录：1.0 内置例程扩展
+
+1. PWM 呼吸灯例程
+   - 新增 `examples/icesugar-pwm-breathing`。
+   - 包含 `example.yaml`、`project.vflux.yaml`、`README.md`、`constraints/top.pcf`、`src/top.v`。
+   - 目标：展示 PWM、占空比渐变、寄存器计数器和 iCESugar 拖拽烧录流程。
+2. 按键消抖例程
+   - 新增 `examples/icesugar-button-debounce`。
+   - 包含 `src/debounce.v` 和 `src/top.v`，覆盖同步、消抖计数和边沿检测。
+   - 目标：给用户一个输入外设工程模板，而不仅是输出 LED。
+3. UART echo 例程
+   - 新增 `examples/icesugar-uart-echo`。
+   - 包含 `src/uart_rx.v`、`src/uart_tx.v` 和 `src/top.v`。
+   - 默认 12 MHz / 115200 baud，使用 iCESugar 板卡包中的 UART 引脚。
+   - 目标：提供多模块串口工程模板，后续可扩展为调试串口或简单通信例程。
+4. 验证
+   - `npm run release:check` 通过。
+   - `node --check scripts/validate-examples.js` 通过。
+   - 当前环境 PATH 中未找到 Yosys，因此新增 HDL 例程的 Yosys 语法烟测已跳过，后续应在配置 OSS CAD Suite 后用一键验收实跑。
+
+## 第三十二轮升级记录：FSM 仿真例程与 README 例程清单
+
+1. FSM 仿真例程
+   - 新增 `examples/verilog-fsm-sim`。
+   - 包含 `traffic_fsm.v` 和 `tb_traffic_fsm.v`。
+   - 目标：演示纯 Verilog 状态机、testbench、VCD 波形生成和仿真工作台。
+2. README 更新
+   - 中文 README 和英文 README 的内置例程表已加入：
+     - iCESugar PWM Breathing LED
+     - iCESugar Button Debounce
+     - iCESugar UART Echo
+     - Verilog FSM Simulation
+3. 验证
+   - `npm run release:check` 通过。
+   - `node --check scripts/validate-examples.js` 通过。
+
+## 第三十三轮升级记录：板卡包体检与例程验收加严
+
+1. 自定义板卡包体检
+   - 新增：板卡选择页的“图形化创建自定义板卡包”表单会在输入时自动显示体检结果。
+   - 检查内容包括：板卡名称、芯片族、器件型号、封装、常见器件/封装格式、烧录工具与芯片族匹配度、时钟频率格式、重复引脚、LED/按键/时钟资源完整度。
+   - 保存策略：必填字段缺失或重复引脚会阻止保存；不常见器件、封装、烧录工具会给出建议但允许继续。
+   - 理由：自定义板卡包是 1.0 专业化入口，不能只把 YAML 写出去，必须在写入前尽量发现明显错误。
+
+2. 例程静态验收加严
+   - 重写 `scripts/validate-examples.js`，输出恢复为可读中文。
+   - 新增检查：`README.md`、`schema_version`、`app_version`、`project.name`、`project.top_module`、顶层模块是否真实存在、include 文件是否存在、仿真例程 testbench 是否存在。
+   - 保留检查：例程元数据、工程配置、源文件、约束文件、板卡包存在性。
+   - 理由：发布前的例程检查应该更接近用户实际“一键创建/一键验收”的入口质量，而不是只看文件是否粗略存在。
+
+3. 旧例程格式补齐
+   - 为早期例程补充 `schema_version: 1` 和 `app_version: 1.0.0-preview`。
+   - 涉及：`icesugar-blinky`、`icesugar-multifile-counter`、`icesugar-pro-blinky`、`tang-nano-9k-blinky`、`verilog-counter-sim`。
+
+4. 验证
+   - `node --check scripts/validate-examples.js` 通过。
+   - `node --check renderer/panels/board.js` 通过。
+   - `npm run release:check` 通过。
+
+## 第三十四轮升级记录：工程体检接入板卡包结构校验
+
+1. 工程体检增强
+   - 新增：工程体检会根据 `board.filename` 读取内置板卡包或工程目录下的 `project:boards/*.yaml`。
+   - 新增：体检会检查板卡包 YAML 是否存在、是否能解析、是否包含 `fpga.family`、`fpga.device`、`fpga.package`、基础工具链字段和基础资源字段。
+   - 新增：体检会发现板卡包资源里的重复引脚，并将其标为阻塞问题。
+   - 新增：缺少 clock、program 工具、pnr/pack/synth 工具、constraints 键等会显示为注意项。
+
+2. 理由
+   - 1.0 允许用户图形化创建自定义板卡包，因此打开已有工程时也必须能检查板卡包质量。
+   - 仅检查工程缓存里的板卡摘要不够可靠，真正影响构建的是板卡 YAML 文件本身。
+
+3. 验证
+   - `node --check src/main.js` 通过。
+   - `node --check renderer/panels/project.js` 通过。
+   - `npm run release:check` 通过。
+
+## 第三十五轮升级记录：报告中心发布前检查
+
+1. 发布前检查卡片
+   - 新增：报告中心加入“发布前检查”卡片。
+   - 汇总内容包括：工程配置、工具链环境、核心构建、报告材料、图形产物、烧录准备、最近验收。
+   - 状态分为绿色可用、黄色注意、红色阻塞，并给出可读原因。
+
+2. 数据来源
+   - 读取 `output/reports/project-health.json` 判断工程体检结果。
+   - 读取 `output/reports/toolchain-acceptance.json` 判断 OSS CAD Suite 验收结果。
+   - 读取 `output/reports/vflux-acceptance.json` 判断最近一次一键验收结果。
+   - 同时结合当前流水线状态和真实产物存在性判断 bitstream、HTML 报告、图形产物和烧录准备。
+
+3. 理由
+   - 1.0 试用版需要一个更直接的“我现在能不能发给别人试用/能不能烧录/缺什么”的总览，而不是让用户分散查看多个工作台。
+
+4. 验证
+   - `node --check renderer/panels/report.js` 通过。
+   - `node --check src/main.js` 通过。
+   - `npm run release:check` 通过。
+
+## 第三十六轮升级记录：1.0 发布前自动验收按钮
+
+1. 自动验收入口
+   - 新增：报告中心按钮“1.0 发布前自动验收”。
+   - 执行顺序：工程体检 -> 工具链验收 -> 一键构建与验收 -> 导出 HTML 报告 -> 刷新发布前检查。
+   - 如果核心构建失败，会保留失败步骤并在报告中心给出阻塞提示。
+
+2. 开发者可读性
+   - 在自动验收编排函数旁加入简短英文注释，说明该函数只做流程编排，各工作台仍负责各自的细节逻辑。
+   - 在发布前检查摘要函数旁加入英文注释，说明它同时服务可视化卡片和自动验收结论。
+
+3. 理由
+   - 打包 1.0 前需要减少人工重复操作，让用户从报告中心就能完成“工程是否可发布/可试用”的一次性检查。
+
+4. 验证
+   - `node --check renderer/panels/report.js` 通过。
+   - `node --check renderer/panels/build-all.js` 通过。
+   - `npm run release:check` 通过。
+
+## 第三十七轮升级记录：1.0.0-rc.1 版本与发布文档收口
+
+1. 版本号
+   - 将 `package.json` 和 `package-lock.json` 从 `0.9.0` 更新为 `1.0.0-rc.1`。
+   - 理由：当前功能已经进入 1.0 试用候选阶段，版本号应反映 RC 状态。
+
+2. README 收口
+   - 重写中文 `README.md`，修复终端显示乱码风险，并统一描述 1.0.0-rc.1。
+   - 补充第一次使用流程、报告中心、发布前自动验收、FAQ、Windows RC 打包说明和当前边界。
+   - 同步更新 `README.en.md`，补充 RC 版本、Report Center、Release Preflight 和 FAQ。
+
+3. 发布文档
+   - 新增 `docs/release-1.0.0-rc.1-notes.md`。
+   - 新增 `docs/hardware-validation-1.0.0-rc.1.md`。
+   - 硬件验收清单覆盖 iCESugar LED、Multi-file Counter、PWM、Button Debounce、UART Echo 和仿真例程。
+
+4. 理由
+   - 1.0 RC 前需要把“软件怎么用、怎么验收、怎么发布、已知边界是什么”写清楚。
+   - 真实硬件验收无法由代码静态检查替代，因此需要单独的人工 checklist。
+
+## 第三十八轮升级记录：英文主 README 与双版本打包准备
+
+1. README 结构
+   - 将 `README.md` 调整为英文主入口。
+   - 新增/保留 `README.zh-CN.md` 作为中文指南，并在英文 README 顶部提供链接。
+   - `README.en.md` 仍保留为英文副本，便于历史链接不失效。
+
+2. 版本策略
+   - 将 `package.json` 和 `package-lock.json` 更新为 `1.0.0`，用于 Windows 正式 portable 构建。
+   - Linux AppImage 仍按 `0.9.1` preview 打包，通过独立脚本覆盖 metadata version 和 artifactName。
+   - 理由：Windows 已进入 1.0.0 发布准备，Linux 仍缺少真实机器验收，不应标为 1.0.0。
+
+3. 打包脚本
+   - `npm run pack:win` / `npm run pack:win:1.0.0`：输出 Windows 1.0.0 portable。
+   - `npm run pack:win:zip`：输出 Windows 1.0.0 ZIP。
+   - `npm run pack:linux` / `npm run pack:linux:0.9.1`：输出 Linux 0.9.1 AppImage preview。
+
+4. 发布文档
+   - 将发布说明整理为 `docs/release-1.0.0-win-0.9.1-linux-notes.md`。
+   - 将硬件验收清单整理为 `docs/hardware-validation-1.0.0-win.md`。

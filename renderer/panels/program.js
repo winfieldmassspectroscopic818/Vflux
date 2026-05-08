@@ -227,6 +227,8 @@ const PanelProgram = {
   _selectedMethod(board) {
     const method = document.getElementById("prog-method").value;
     if (method !== "board") return method;
+    // iCESugar 在 0.9 实测中拖拽盘符最稳定，1.0 默认把它作为推荐路径。
+    if ((board.name || "").toLowerCase().includes("icesugar")) return "mass-storage";
     const tool = (board.program_tool || "").toLowerCase();
     if (tool.includes("icesprog")) return "icesprog";
     if (tool.includes("openfpgaloader")) return "openfpgaloader";

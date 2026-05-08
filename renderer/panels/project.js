@@ -21,6 +21,7 @@ const PanelProject = {
     document.getElementById("btn-gen-pcf").addEventListener("click", () => this._genPcf());
     document.getElementById("btn-apply-project").addEventListener("click", () => this._apply());
     document.getElementById("btn-save-project-file").addEventListener("click", () => this._save());
+    document.getElementById("btn-health-check")?.addEventListener("click", () => this.runHealthCheck());
 
     // 顶部栏的保存按钮
   },
@@ -271,6 +272,32 @@ const PanelProject = {
     } else {
       App.setStatus("PCF 生成失败: " + (result.reason || "未知错误"));
     }
+  },
+
+  async runHealthCheck() {
+    this._apply();
+    const panel = document.getElementById("project-health-panel");
+    if (panel) panel.style.display = "grid";
+    ToolStepUI.render("health-result", "health-summary", "health-feedback-list", "running", "正在检查工程配置", [
+      { state: "running", text: "检查工程目录、源文件、约束文件、板卡、工具链路径和输出目录。" },
+    ]);
+    const result = await window.vflux.healthCheckProject(Config.data);
+    const items = (result.items || []).map((item) => ({
+      state: item.state === "ok" ? "success" : item.state === "warn" ? "pending" : "failed",
+      text: `${item.title}：${item.detail}`,
+    }));
+    const kind = result.ok ? (result.warn ? "ready" : "success") : "failed";
+    const summary = result.ok
+      ? (result.warn ? `工程基本可用，${result.warn} 项需要注意` : "工程体检通过")
+      : `工程体检发现 ${result.bad} 个阻塞问题`;
+    ToolStepUI.render("health-result", "health-summary", "health-feedback-list", kind, summary, items);
+    if (Config.data.project.directory) {
+      await window.vflux.writeText(ToolStepUI.projectPath("output/reports/project-health.json"), JSON.stringify(result, null, 2));
+    }
+    Pipeline.set("project", result.ok ? "success" : "failed", result.ok ? null : `${result.bad} issue(s)`);
+    App.setStatus(summary);
+    App.globalLog("工程体检完成：" + summary);
+    return result;
   },
 
   // ==========================================================================

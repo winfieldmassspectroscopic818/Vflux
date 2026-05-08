@@ -1,0 +1,7 @@
+# iCESugar UP5K button debounce example
+set_io clk 35
+set_io btn1 4
+set_io btn2 3
+set_io led1 41
+set_io led2 40
+set_io led3 39

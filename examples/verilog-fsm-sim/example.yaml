@@ -1,0 +1,8 @@
+title: "Verilog FSM Simulation"
+project_name: "verilog_fsm_sim"
+family: "simulation"
+board: "No board"
+top_module: "traffic_fsm"
+testbench: "tb/tb_traffic_fsm.v"
+description: "纯 Verilog FSM 仿真例程，演示状态机、testbench、VCD 波形和仿真工作台。"
+flow: ["检查", "仿真", "波形"]

@@ -27,6 +27,11 @@ const PanelBoard = {
     });
     document.getElementById("btn-export-board-draft").addEventListener("click", () => this._exportBoardDraft());
     document.getElementById("btn-save-custom-board").addEventListener("click", () => this._saveCustomBoard());
+    this._ensureCustomValidationPanel();
+    document.querySelectorAll(".custom-board-editor input, .custom-board-editor select").forEach((el) => {
+      el.addEventListener("input", () => this._renderCustomValidation());
+      el.addEventListener("change", () => this._renderCustomValidation());
+    });
   },
 
   async refresh() {
@@ -184,11 +189,17 @@ const PanelBoard = {
       App.setStatus("请先打开或创建工程，再保存自定义板卡包");
       return;
     }
-    const name = this._value("custom-board-name") || "Custom FPGA Board";
+    const name = this._value("custom-board-name");
     const family = this._value("custom-board-family") || "ice40";
-    const device = this._value("custom-board-device") || (family === "ecp5" ? "25k" : family === "gowin" ? "GW1NR-9" : "up5k");
-    const pkg = this._value("custom-board-package") || (family === "ecp5" ? "CABGA381" : family === "gowin" ? "QFN88" : "sg48");
+    const device = this._value("custom-board-device");
+    const pkg = this._value("custom-board-package");
     const program = this._value("custom-board-program") || "openFPGALoader";
+    const validation = this._validateCustomBoard({ name, family, device, pkg, program });
+    this._renderCustomValidation(validation);
+    if (validation.errors.length) {
+      App.setStatus("自定义板卡包还有必填或格式问题，请先修正红色提示");
+      return;
+    }
     const slug = name.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "") || "custom-board";
     const relative = `boards/${slug}.yaml`;
     const target = ToolStepUI.projectPath(relative);
@@ -248,6 +259,121 @@ const PanelBoard = {
       const [name, pin] = entry.split(":").map((part) => part.trim());
       return { name: name || `io${index}`, pin: pin || "" };
     });
+  },
+
+  _ensureCustomValidationPanel() {
+    const editor = document.querySelector(".custom-board-editor");
+    if (!editor || document.getElementById("custom-board-validation-list")) return;
+    const panel = document.createElement("div");
+    panel.className = "custom-board-validation";
+    panel.innerHTML = [
+      '<div class="result-card ready compact-card" id="custom-board-validation-card">',
+      '<div><span class="result-kicker">板卡包体检</span><h3 id="custom-board-validation-summary">填写后自动检查</h3></div><span class="result-dot"></span>',
+      "</div>",
+      '<ul class="feedback-list" id="custom-board-validation-list"></ul>',
+    ].join("");
+    editor.appendChild(panel);
+  },
+
+  _renderCustomValidation(precomputed = null) {
+    this._ensureCustomValidationPanel();
+    const validation = precomputed || this._validateCustomBoard();
+    const kind = validation.errors.length ? "failed" : validation.warnings.length ? "ready" : "success";
+    const summary = validation.errors.length
+      ? `${validation.errors.length} 项需要修正`
+      : validation.warnings.length
+        ? `${validation.warnings.length} 项建议补充`
+        : "板卡包可以保存";
+    const card = document.getElementById("custom-board-validation-card");
+    const title = document.getElementById("custom-board-validation-summary");
+    const list = document.getElementById("custom-board-validation-list");
+    if (card) card.className = `result-card ${kind} compact-card`;
+    if (title) title.textContent = summary;
+    if (list) {
+      const items = [
+        ...validation.errors.map((text) => ({ state: "failed", text })),
+        ...validation.warnings.map((text) => ({ state: "pending", text })),
+        ...validation.ok.map((text) => ({ state: "success", text })),
+      ];
+      list.innerHTML = items.map((item) => `<li class="${item.state}"><span></span>${ToolStepUI.escape(item.text)}</li>`).join("");
+    }
+  },
+
+  _validateCustomBoard(seed = {}) {
+    const name = seed.name ?? this._value("custom-board-name");
+    const family = seed.family ?? (this._value("custom-board-family") || "ice40");
+    const device = seed.device ?? this._value("custom-board-device");
+    const pkg = seed.pkg ?? this._value("custom-board-package");
+    const program = seed.program ?? this._value("custom-board-program");
+    const clock = this._clockList();
+    const leds = this._pinList("custom-board-leds");
+    const buttons = this._pinList("custom-board-buttons");
+    const resources = [...clock, ...leds, ...buttons];
+    const errors = [];
+    const warnings = [];
+    const ok = [];
+
+    // 保存前先做板卡包体检，避免用户到综合或烧录阶段才发现基础字段填错。
+    if (!name.trim()) errors.push("板卡名称不能为空，用于工程配置和板卡包文件名。");
+    if (!["ice40", "ecp5", "gowin"].includes(family)) errors.push("芯片族必须是 ice40、ecp5 或 gowin。");
+    if (!device.trim()) errors.push("器件型号不能为空，例如 up5k、hx8k、25k、45k、GW1NR-9。");
+    if (!pkg.trim()) errors.push("封装不能为空，例如 sg48、ct256、CABGA381、QFN88。");
+
+    const familyRules = {
+      ice40: {
+        device: /^(up5k|hx[148]k|lp[138]k)$/i,
+        package: /^(sg48|cm81|cm121|cb132|vq100|tq144|ct256)$/i,
+        programs: ["openFPGALoader", "icesprog", "dfu-util"],
+      },
+      ecp5: {
+        device: /^(12k|25k|45k|85k|um-25k|um5g-25k|um5g-45k|um5g-85k)$/i,
+        package: /^(CABGA256|CABGA381|CABGA554|CSFBGA285|BG256|BG381)$/i,
+        programs: ["openFPGALoader", "ecpprog"],
+      },
+      gowin: {
+        device: /^GW[0-9A-Z-]+$/i,
+        package: /^(QFN|QN|LQFP|BGA|PBGA|CABGA|UBGA|CS|MG)[A-Z0-9-]*$/i,
+        programs: ["openFPGALoader", "dfu-util"],
+      },
+    };
+    const rule = familyRules[family];
+    if (rule) {
+      if (device && !rule.device.test(device)) warnings.push(`${family} 器件型号看起来不常见，请确认 nextpnr 是否支持：${device}`);
+      if (pkg && !rule.package.test(pkg)) warnings.push(`${family} 封装看起来不常见，请确认板卡资料和 nextpnr 参数：${pkg}`);
+      if (program && !rule.programs.includes(program)) warnings.push(`${program} 不是 ${family} 常见烧录工具，后续可能需要手动覆盖烧录参数。`);
+    }
+
+    const slug = name.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
+    const builtinConflict = this._allBoards.some((board) => board._source === "builtin" && board._filename === `${slug}.yaml`);
+    if (builtinConflict) warnings.push("该名称会生成与内置板卡同名的文件，建议换一个更具体的名称。");
+
+    const badPins = resources.filter((item) => item.pin && !this._looksLikePin(item.pin));
+    if (badPins.length) warnings.push(`有 ${badPins.length} 个引脚格式不常见，请确认是否和约束文件格式一致。`);
+    const pinMap = new Map();
+    for (const item of resources) {
+      if (!item.pin) continue;
+      const key = String(item.pin).toUpperCase();
+      pinMap.set(key, [...(pinMap.get(key) || []), item.name]);
+    }
+    const duplicates = [...pinMap.entries()].filter(([, names]) => names.length > 1);
+    if (duplicates.length) errors.push(`发现重复引脚：${duplicates.map(([pin, names]) => `${pin}(${names.join("/")})`).join(", ")}`);
+
+    if (!clock.length) warnings.push("建议至少填写一个时钟资源，便于新工程自动生成约束和 SDC 草稿。");
+    else {
+      const invalidFreq = clock.filter((item) => item.frequency && !/^\d+(\.\d+)?\s*(hz|khz|mhz|ghz)$/i.test(item.frequency));
+      if (invalidFreq.length) warnings.push("时钟频率建议写成 12MHz、25 MHz、100MHz 这类形式。");
+    }
+    if (!leds.length && !buttons.length) warnings.push("建议至少填写 LED 或按键资源，方便例程和约束生成。");
+
+    if (!errors.length) ok.push("必填字段完整，板卡包可写入当前工程的 boards 目录。");
+    if (clock.length) ok.push(`已识别 ${clock.length} 个时钟资源。`);
+    if (leds.length || buttons.length) ok.push(`已识别 ${leds.length} 个 LED、${buttons.length} 个按键资源。`);
+    return { errors, warnings, ok };
+  },
+
+  _looksLikePin(pin) {
+    const text = String(pin || "").trim();
+    return /^[A-Za-z]?[0-9]+$/.test(text) || /^[A-Z]{1,3}[0-9]{1,3}$/i.test(text) || /^[A-Z][0-9]+_[A-Z0-9]+$/i.test(text);
   },
 
   _boardYaml(data) {

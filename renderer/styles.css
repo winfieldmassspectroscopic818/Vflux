@@ -317,6 +317,11 @@ button { font-family: inherit; font-size: 13px; border-radius: var(--radius-sm);
   padding: 0;
   border: 0;
 }
+.health-panel {
+  margin-top: 14px;
+  display: grid;
+  gap: 10px;
+}
 .example-grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
@@ -497,6 +502,9 @@ button { font-family: inherit; font-size: 13px; border-radius: var(--radius-sm);
   letter-spacing: 0.8px;
 }
 .result-card h3 { font-size: 24px; line-height: 1.2; margin: 0; }
+.result-card.compact-card { padding: 14px 16px; min-height: auto; }
+.result-card.compact-card h3 { font-size: 17px; }
+.result-card.compact-card .result-dot { width: 28px; height: 28px; box-shadow: 0 0 0 5px rgba(79,209,178,0.06); }
 .result-dot {
   width: 46px;
   height: 46px;
@@ -534,6 +542,11 @@ button { font-family: inherit; font-size: 13px; border-radius: var(--radius-sm);
 .feedback-list li.success span { border-color: var(--green); background: var(--green); }
 .feedback-list li.running span { border-color: var(--yellow); background: var(--yellow); }
 .feedback-list li.failed span { border-color: var(--red); background: var(--red); }
+.custom-board-validation {
+  display: grid;
+  gap: 10px;
+  margin-top: 14px;
+}
 .action-row { margin-top: 4px; }
 .workbench-grid {
   display: grid;
@@ -734,6 +747,42 @@ button { font-family: inherit; font-size: 13px; border-radius: var(--radius-sm);
 .report-card-wide { grid-column: span 2; }
 .report-card h3 { font-size: 13px; color: var(--text-primary); margin-bottom: 6px; }
 .report-card pre { font-family: var(--font-mono); font-size: 11px; color: var(--text-secondary); white-space: pre-wrap; max-height: 140px; overflow-y: auto; }
+.release-readiness-head {
+  padding: 10px 12px;
+  border-radius: var(--radius-sm);
+  font-weight: 700;
+  margin-bottom: 10px;
+}
+.release-readiness-head.ok { color: var(--green); background: var(--green-bg); border: 1px solid rgba(63,185,80,0.35); }
+.release-readiness-head.warn { color: var(--yellow); background: rgba(210,153,34,0.08); border: 1px solid rgba(210,153,34,0.35); }
+.release-readiness-head.bad { color: var(--red); background: var(--red-bg); border: 1px solid rgba(248,81,73,0.35); }
+.release-readiness-list {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
+  gap: 8px;
+}
+.release-readiness-item {
+  display: flex;
+  gap: 9px;
+  align-items: flex-start;
+  padding: 10px;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border-color);
+  background: rgba(255,255,255,0.025);
+}
+.release-readiness-item > span {
+  width: 10px;
+  height: 10px;
+  margin-top: 4px;
+  border-radius: 50%;
+  background: var(--text-muted);
+  flex: 0 0 auto;
+}
+.release-readiness-item.ok > span { background: var(--green); }
+.release-readiness-item.warn > span { background: var(--yellow); }
+.release-readiness-item.bad > span { background: var(--red); }
+.release-readiness-item strong { display: block; color: var(--text-primary); font-size: 12px; margin-bottom: 3px; }
+.release-readiness-item p { color: var(--text-secondary); font-size: 11px; line-height: 1.45; }
 @media (max-width: 900px) {
   .report-card-wide { grid-column: span 1; }
 }
@@ -794,6 +843,41 @@ button { font-family: inherit; font-size: 13px; border-radius: var(--radius-sm);
 @media (max-width: 620px) {
   .language-actions { grid-template-columns: 1fr; }
 }
+.onboarding-box { width: 680px; max-width: calc(100vw - 32px); }
+.onboarding-steps {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 10px;
+  margin: 16px 0;
+}
+.onboarding-step {
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius);
+  background: var(--bg-panel);
+  padding: 14px;
+  display: grid;
+  gap: 8px;
+}
+.onboarding-step span {
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--accent);
+  color: #fff;
+  font-weight: 700;
+  font-size: 12px;
+}
+.onboarding-step strong { color: var(--text-primary); font-size: 14px; }
+.onboarding-step p { color: var(--text-secondary); font-size: 12px; line-height: 1.45; }
+.onboarding-actions {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 10px;
+}
+.onboarding-check { margin-top: 14px; }
 .modal-footer { display: flex; justify-content: flex-end; gap: 8px; padding: 14px 20px; border-top: 1px solid var(--border-color); }
 
 /* Bottom Log */

@@ -1,14 +1,13 @@
 schema_version: 1
 app_version: 1.0.0-preview
 project:
-  name: icesugar_multifile_counter
+  name: icesugar_button_debounce
   directory: ""
   top_module: top
   language: verilog
   sources:
     - src/top.v
-    - src/prescaler.v
-    - src/led_chaser.v
+    - src/debounce.v
   constraints:
     - constraints/top.pcf
   program_target_dir: ""
@@ -30,16 +29,12 @@ flow:
     opt: true
     fsm: true
     memory: true
-    splitnets: false
     abc: true
-    flatten: false
-    abc9: false
-    multishare: false
   pnr:
     timing: true
     report: true
     svg: true
-    seed: 2
+    seed: 4
     frequency: 12
   pack:
     metadata: true

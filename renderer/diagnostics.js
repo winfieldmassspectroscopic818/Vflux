@@ -9,8 +9,20 @@ const ToolDiagnostics = {
         item: { state: "failed", text: "HDL 语法存在问题，请回到代码编辑器检查报错附近的模块声明、分号、括号和 always/assign 写法。" },
       },
       {
+        test: /re-definition|already defined|duplicate declaration|conflicting drivers|multiple drivers/i,
+        item: { state: "failed", text: "存在重复定义或多重驱动，请检查模块名、信号名、include 文件和同一信号是否被多个 always/assign 同时驱动。" },
+      },
+      {
+        test: /Latch inferred|inferred latch|unintended latch/i,
+        item: { state: "pending", text: "工具推断出了锁存器。如果不是有意设计，请检查组合逻辑 always 块是否为所有分支都赋值。" },
+      },
+      {
         test: /Module .* not found|Can't find module|top module|Cannot find module/i,
         item: { state: "failed", text: `找不到顶层模块或依赖模块，请确认顶层模块 ${context.top || "top"} 已填写正确，并且相关源文件已经加入工程。` },
+      },
+      {
+        test: /include file.*not found|cannot find include|No include path/i,
+        item: { state: "failed", text: "头文件或 include 路径缺失，请确认 `.vh/.svh` 文件已加入工程，或在仿真/综合选项里补充 include 目录。" },
       },
       {
         test: /Can't open input file|No such file|cannot open|failed to open/i,
@@ -23,6 +35,14 @@ const ToolDiagnostics = {
       {
         test: /constraint|PCF|pin|package|unconstrained/i,
         item: { state: "failed", text: "约束或封装信息可能不匹配，请检查板卡型号、PCF 引脚和未约束 IO。" },
+      },
+      {
+        test: /IO.*already constrained|duplicate.*pin|pin.*already used|multiple.*constraint/i,
+        item: { state: "failed", text: "约束文件里可能有重复引脚或同一端口重复约束，请检查 PCF/LPF/CST 中的端口名和物理引脚。" },
+      },
+      {
+        test: /Unknown package|unsupported device|Unknown device|does not exist in database/i,
+        item: { state: "failed", text: "目标器件、封装或芯片族不被当前 nextpnr 支持，请检查板卡包里的 device/package/speed 字段和工具链版本。" },
       },
       {
         test: /failed to place|unable to place|no BEL|No available|resource/i,
@@ -41,6 +61,14 @@ const ToolDiagnostics = {
         item: { state: "failed", text: "没有找到 DFU 设备。若下载刚开始或刚结束，设备短暂消失可能是重枚举；否则请重新进入 DFU 模式。" },
       },
       {
+        test: /LIBUSB_ERROR_ACCESS|Access is denied|Permission denied|insufficient permissions/i,
+        item: { state: "failed", text: "USB/JTAG 访问权限不足。Windows 请检查驱动，Linux 需要检查 udev 规则、用户组权限或以合适权限重新插拔设备。" },
+      },
+      {
+        test: /No such file or directory.*(icepack|ecppack|yosys|nextpnr|openFPGALoader)|spawn .* ENOENT/i,
+        item: { state: "failed", text: "工具链命令没有找到，请回到工具链页面重新选择 OSS CAD Suite 根目录并运行环境验收。" },
+      },
+      {
         test: /No cable|not found|unable to open|USB|JTAG|libusb|ftdi/i,
         item: { state: "failed", text: "没有找到烧录器或开发板，请检查 USB 连接、驱动、供电、线缆和烧录方式。" },
       },
@@ -51,6 +79,10 @@ const ToolDiagnostics = {
       {
         test: /verify|mismatch|CRC/i,
         item: { state: "failed", text: "写入校验不一致，建议重新生成比特流后再次烧录，并确认目标存储类型选择正确。" },
+      },
+      {
+        test: /VCD|dumpfile|Unable to open.*vcd|waveform/i,
+        item: { state: "pending", text: "仿真波形没有正确生成或打开，请确认 testbench 中写出了 `$dumpfile` 和 `$dumpvars`，并检查 output/simulation 目录。" },
       },
     ];
 
